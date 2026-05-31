@@ -4,7 +4,7 @@
 - Java 21 LTS
 
 ## Framework principal
-- Spring Boot 4.0.6
+- Spring Boot 3.5.14 (estável)
 
 ## Dependências principais
 - Spring Web (REST API)
