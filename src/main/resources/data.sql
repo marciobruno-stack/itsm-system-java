@@ -42,3 +42,6 @@ INSERT INTO ticket (titulo, descricao, prioridade, tipo, estado, data_abertura, 
 -- Comentário
 INSERT INTO comentario (texto, data_hora, ticket_id, tecnico_id) VALUES
     ('Estou a analisar a configuração do switch', CURRENT_TIMESTAMP, 1, 1);
+
+INSERT INTO competencia (nome) VALUES ('Impressora');
+INSERT INTO tecnico_competencia (tecnico_id, competencia_id) VALUES (1, 6); -- João
