@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.itsm</groupId>
-	<artifactId>incident-management</artifactId>
+	<artifactId>incidentmanagement</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>incident-management</name>
 	<description>Sistema de Gestão de Infraestruturas e Incidentes (ITSM)</description>
@@ -81,6 +81,12 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<!-- H2 Database (para testes/desenvolvimento) -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
 
