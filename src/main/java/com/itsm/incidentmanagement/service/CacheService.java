@@ -4,10 +4,10 @@ import com.itsm.incidentmanagement.model.entity.Tecnico;
 import com.itsm.incidentmanagement.model.entity.Ticket;
 import com.itsm.incidentmanagement.repository.TecnicoRepository;
 import com.itsm.incidentmanagement.repository.TicketRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class CacheService {
@@ -15,24 +15,26 @@ public class CacheService {
     private final TicketRepository ticketRepository;
     private final ConcurrentHashMap<Long, Tecnico> tecnicosCache = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Long, Ticket> ticketsCache = new ConcurrentHashMap<>();
-    private final AtomicBoolean loaded = new AtomicBoolean(false);
 
     public CacheService(TecnicoRepository tecnicoRepository, TicketRepository ticketRepository) {
         this.tecnicoRepository = tecnicoRepository;
         this.ticketRepository = ticketRepository;
     }
 
-    private void ensureLoaded() {
-        if (loaded.compareAndSet(false, true)) {
-            loadTecnicos();
-            loadTickets();
-            System.out.println("Cache carregado: " + tecnicosCache.size() + " técnicos, " + ticketsCache.size() + " tickets");
-        }
+    @PostConstruct
+    public void loadCache() {
+        loadTecnicos();
+        loadTickets();
+        System.out.println("📦 Cache carregado: " + tecnicosCache.size() + " técnicos, " + ticketsCache.size() + " tickets");
     }
 
     public void loadTecnicos() {
         tecnicosCache.clear();
-        tecnicoRepository.findAll().forEach(t -> tecnicosCache.put(t.getId(), t));
+        tecnicoRepository.findAll().forEach(t -> {
+            tecnicosCache.put(t.getId(), t);
+            System.out.println("   ✅ Técnico carregado: " + t.getUtilizador().getNome() +
+                    " | Competências: " + t.getCompetencias().size());
+        });
     }
 
     public void loadTickets() {
@@ -41,22 +43,18 @@ public class CacheService {
     }
 
     public Tecnico getTecnico(Long id) {
-        ensureLoaded();
         return tecnicosCache.get(id);
     }
 
     public List<Tecnico> getAllTecnicos() {
-        ensureLoaded();
         return List.copyOf(tecnicosCache.values());
     }
 
     public void updateTecnico(Tecnico tecnico) {
-        ensureLoaded();
         tecnicosCache.put(tecnico.getId(), tecnico);
     }
 
     public void updateTicket(Ticket ticket) {
-        ensureLoaded();
         ticketsCache.put(ticket.getId(), ticket);
     }
 }

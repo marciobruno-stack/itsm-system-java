@@ -11,13 +11,19 @@ public class DisponibilidadeUtils {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public static boolean isDisponivel(String disponibilidadeJson, DayOfWeek dia, LocalTime hora) {
-        if (disponibilidadeJson == null || disponibilidadeJson.isBlank()) return true; // assume disponível
+        if (disponibilidadeJson == null || disponibilidadeJson.isBlank()) {
+            System.out.println("   ⚠️ Disponibilidade vazia, assume disponível");
+            return true;
+        }
         try {
             Map<String, List<String>> disponibilidade = mapper.readValue(disponibilidadeJson,
                     new TypeReference<Map<String, List<String>>>() {});
-            String diaStr = dia.toString().toLowerCase(); // "monday", "tuesday", etc.
+            String diaStr = dia.toString().toLowerCase();
             List<String> intervalos = disponibilidade.get(diaStr);
-            if (intervalos == null) return false;
+            if (intervalos == null) {
+                System.out.println("   ⚠️ Sem intervalo para " + diaStr);
+                return false;
+            }
             for (String intervalo : intervalos) {
                 String[] parts = intervalo.split("-");
                 LocalTime inicio = LocalTime.parse(parts[0]);
@@ -28,7 +34,8 @@ public class DisponibilidadeUtils {
             }
             return false;
         } catch (Exception e) {
-            return true; // se erro, assume disponível
+            System.out.println("   ❌ Erro ao ler disponibilidade: " + e.getMessage());
+            return true;
         }
     }
 }

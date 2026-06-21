@@ -2,6 +2,7 @@ package com.itsm.incidentmanagement.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;  // ← ADICIONAR
 import java.time.LocalDateTime;
 
 @Entity
@@ -30,4 +31,8 @@ public class Utilizador {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @OneToOne(mappedBy = "utilizador")
+    @JsonIgnore   // ← ADICIONAR: evita loop com Tecnico
+    private Tecnico tecnico;
 }

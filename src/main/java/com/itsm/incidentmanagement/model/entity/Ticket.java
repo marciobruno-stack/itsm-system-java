@@ -2,6 +2,7 @@ package com.itsm.incidentmanagement.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;  // ← IMPORTANTE
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,13 +21,13 @@ public class Ticket {
     private String descricao;
 
     @Column(nullable = false, length = 20)
-    private String prioridade; // BAIXA, MEDIA, ALTA, CRITICA
+    private String prioridade;
 
     @Column(nullable = false, length = 20)
-    private String tipo; // INCIDENTE, PEDIDO
+    private String tipo;
 
     @Column(nullable = false, length = 30)
-    private String estado; // ABERTO, ATRIBUIDO, EM_CURSO, RESOLVIDO, FECHADO
+    private String estado;
 
     @Column(name = "data_abertura", nullable = false)
     private LocalDateTime dataAbertura;
@@ -36,6 +37,7 @@ public class Ticket {
 
     @ManyToOne
     @JoinColumn(name = "tecnico_id")
+    @JsonIgnore   // ← ADICIONAR: evita loop com Tecnico
     private Tecnico tecnico;
 
     @ManyToOne

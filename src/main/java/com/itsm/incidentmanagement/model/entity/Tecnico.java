@@ -1,11 +1,10 @@
 package com.itsm.incidentmanagement.model.entity;
-import com.itsm.incidentmanagement.model.entity.Competencia;
+
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashSet;
 import java.util.Set;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 
 @Entity
 @Table(name = "tecnico")
@@ -21,12 +20,12 @@ public class Tecnico {
     private Utilizador utilizador;
 
     @Column(length = 2000)
-    private String disponibilidade; // Guardar como JSON string, ou converter com AttributeConverter
+    private String disponibilidade;
 
     @Column(name = "carga_trabalho_atual")
     private Integer cargaTrabalhoAtual = 0;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "tecnico_competencia",
             joinColumns = @JoinColumn(name = "tecnico_id"),
@@ -35,6 +34,6 @@ public class Tecnico {
     private Set<Competencia> competencias = new HashSet<>();
 
     @OneToMany(mappedBy = "tecnico")
-    @JsonIgnore
+    @JsonIgnore  // ← JÁ TEM (evita loop com Ticket)
     private Set<Ticket> tickets = new HashSet<>();
 }

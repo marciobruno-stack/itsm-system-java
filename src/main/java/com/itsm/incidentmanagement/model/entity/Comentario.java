@@ -2,6 +2,7 @@ package com.itsm.incidentmanagement.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,9 +22,11 @@ public class Comentario {
 
     @ManyToOne
     @JoinColumn(name = "ticket_id", nullable = false)
+    @JsonIgnore
     private Ticket ticket;
 
     @ManyToOne
     @JoinColumn(name = "tecnico_id", nullable = false)
+    @JsonIgnore
     private Tecnico tecnico;
 }
