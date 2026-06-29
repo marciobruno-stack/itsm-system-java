@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-dark bg-primary">
+    <div class="container-fluid">
+        <span class="navbar-brand">ITSM - Admin</span>
+        <span class="navbar-text text-white">
+                Bem-vindo, <span th:text="${username}">Admin</span>
+                <span class="badge bg-warning text-dark" th:text="${role}">ADMIN</span>
+            </span>
+        <a href="/logout" class="btn btn-outline-light btn-sm">Sair</a>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2>Dashboard Administrativo</h2>
+    <p>Bem-vindo, <strong th:text="${username}">Admin</strong>!</p>
+
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5>👥 Utilizadores</h5>
+                    <h2 th:text="${totalUsers}">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5>🔧 Técnicos</h5>
+                    <h2 th:text="${totalTecnicos}">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5>🎫 Tickets Abertos</h5>
+                    <h2 th:text="${ticketsAbertos}">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5>🏷️ Competências</h5>
+                    <h2 th:text="${totalCompetencias}">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <a href="/admin/users" class="btn btn-primary w-100">👥 Utilizadores</a>
+        </div>
+        <div class="col-md-3">
+            <a href="/admin/technicians" class="btn btn-success w-100">🔧 Técnicos</a>
+        </div>
+        <div class="col-md-3">
+            <a href="/admin/tickets" class="btn btn-warning w-100">🎫 Tickets</a>
+        </div>
+        <div class="col-md-3">
+            <a href="/utilizador/new-ticket" class="btn btn-info w-100">➕ Novo Ticket</a>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -6,10 +6,12 @@ import com.itsm.incidentmanagement.repository.TecnicoRepository;
 import com.itsm.incidentmanagement.repository.UtilizadorRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
 public class TecnicoService {
+
     private final TecnicoRepository tecnicoRepository;
     private final UtilizadorRepository utilizadorRepository;
     private final CacheService cacheService;
@@ -28,6 +30,10 @@ public class TecnicoService {
 
     public Tecnico findById(Long id) {
         return tecnicoRepository.findById(id).orElse(null);
+    }
+
+    public Tecnico findByUtilizadorId(Long utilizadorId) {
+        return tecnicoRepository.findByUtilizadorId(utilizadorId).orElse(null);
     }
 
     public List<Tecnico> findByOrderByCargaTrabalho() {

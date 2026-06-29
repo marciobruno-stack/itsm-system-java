@@ -14,12 +14,19 @@ public class CompetenciaService {
         this.competenciaRepository = competenciaRepository;
     }
 
+    @Transactional(readOnly = true)  // ⭐ ADICIONAR
     public List<Competencia> findAll() {
         return competenciaRepository.findAll();
     }
 
+    @Transactional(readOnly = true)  // ⭐ ADICIONAR
     public Competencia findById(Long id) {
         return competenciaRepository.findById(id).orElse(null);
+    }
+
+    @Transactional(readOnly = true)  // ⭐ ADICIONAR
+    public List<Competencia> findAllById(List<Long> ids) {
+        return competenciaRepository.findAllById(ids);
     }
 
     @Transactional

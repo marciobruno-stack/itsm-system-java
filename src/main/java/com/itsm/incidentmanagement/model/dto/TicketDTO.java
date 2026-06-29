@@ -1,8 +1,12 @@
 package com.itsm.incidentmanagement.model.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TicketDTO {
     private Long id;
     private String titulo;

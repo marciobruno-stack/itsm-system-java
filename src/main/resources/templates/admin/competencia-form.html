@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Nova Competencia - ITSM</title>
+    <style>
+        body { font-family: Arial; margin: 0; padding: 20px; background: #f0f2f5; }
+        .header { background: #1a237e; color: white; padding: 20px; }
+        .menu a { color: white; margin: 0 15px; text-decoration: none; }
+        .menu a:hover { text-decoration: underline; }
+        .container { max-width: 600px; margin: 40px auto; }
+        .card { background: white; padding: 30px; border-radius: 10px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .btn { background: #1a237e; color: white; padding: 10px 30px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-secondary { background: #666; }
+        .actions { display: flex; gap: 10px; margin-top: 20px; }
+        .alert-error { background: #ffcdd2; color: #b71c1c; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ITSM - Gestao de Infraestruturas</h1>
+        <div class="menu">
+            <a href="/admin/dashboard">Dashboard</a>
+            <a href="/admin/users">Utilizadores</a>
+            <a href="/admin/technicians">Tecnicos</a>
+            <a href="/admin/tickets">Tickets</a>
+            <a href="/admin/competencias">Competecias</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Nova Competencia</h2>
+            
+            <div th:if="${error}" class="alert-error" th:text="${error}"></div>
+
+            <form th:action="@{/admin/competencias}" method="post" th:object="${competencia}">
+                <div class="form-group">
+                    <label>Nome da Competencia</label>
+                    <input type="text" th:field="*{nome}" placeholder="Ex: Java, SQL, Redes..." required>
+                </div>
+                <div class="actions">
+                    <button type="submit" class="btn">Salvar</button>
+                    <a href="/admin/competencias" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

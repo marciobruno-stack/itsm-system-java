@@ -1,136 +1,155 @@
 package com.itsm.incidentmanagement.service;
 
-import com.itsm.incidentmanagement.model.entity.Tecnico;
-import com.itsm.incidentmanagement.model.entity.Ticket;
-import com.itsm.incidentmanagement.repository.TicketRepository;
+import com.itsm.incidentmanagement.model.entity.*;
+import com.itsm.incidentmanagement.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class TicketService {
-    private final TicketRepository ticketRepository;
-    private final TicketAssignmentService assignmentService;
 
-    public TicketService(TicketRepository ticketRepository, TicketAssignmentService assignmentService) {
+    private static final Logger logger = LoggerFactory.getLogger(TicketService.class);
+
+    private final TicketRepository ticketRepository;
+    private final TecnicoRepository tecnicoRepository;
+    private final UtilizadorRepository utilizadorRepository;
+    private final TicketAssignmentService ticketAssignmentService;
+    private final AuditService auditService;
+
+    public TicketService(TicketRepository ticketRepository,
+                         TecnicoRepository tecnicoRepository,
+                         UtilizadorRepository utilizadorRepository,
+                         TicketAssignmentService ticketAssignmentService,
+                         AuditService auditService) {
         this.ticketRepository = ticketRepository;
-        this.assignmentService = assignmentService;
+        this.tecnicoRepository = tecnicoRepository;
+        this.utilizadorRepository = utilizadorRepository;
+        this.ticketAssignmentService = ticketAssignmentService;
+        this.auditService = auditService;
+    }
+
+    @Transactional
+    public Ticket createTicket(Ticket ticket) {
+        logger.info("AUDIT - Criação de ticket: {}", ticket.getTitulo());
+        auditService.logTicketCreation(0L, ticket.getTitulo(),
+                ticket.getAbertoPor() != null ? ticket.getAbertoPor().getId() : null, "INICIADO");
+
+        ticket.setDataAbertura(LocalDateTime.now());
+        ticket.setEstado("ABERTO");
+
+        try {
+            Tecnico tecnico = ticketAssignmentService.assignTechnician(ticket);
+            if (tecnico != null) {
+                ticket.setTecnico(tecnico);
+                tecnico.setCargaTrabalhoAtual(tecnico.getCargaTrabalhoAtual() + 1);
+                tecnicoRepository.save(tecnico);
+                logger.info("✅ AUDIT - Ticket {} atribuído ao técnico {} (carga: {})",
+                        ticket.getId(), tecnico.getId(), tecnico.getCargaTrabalhoAtual());
+                auditService.logTicketAssignment(
+                        ticket.getId() != null ? ticket.getId() : 0L,
+                        tecnico.getId(),
+                        ticket.getAbertoPor() != null ? ticket.getAbertoPor().getId() : null
+                );
+            } else {
+                logger.warn("⚠️ AUDIT - Ticket {} sem técnico disponível", ticket.getId());
+            }
+        } catch (Exception e) {
+            logger.error("❌ Erro no algoritmo de atribuição: {}", e.getMessage());
+            auditService.logError("ATRIBUICAO_TICKET", e.getMessage(), ticket.getTitulo());
+        }
+
+        Ticket saved = ticketRepository.save(ticket);
+        logger.info("AUDIT - Ticket criado com ID: {}", saved.getId());
+        auditService.logTicketCreation(saved.getId(), saved.getTitulo(),
+                saved.getAbertoPor() != null ? saved.getAbertoPor().getId() : null,
+                saved.getEstado());
+
+        return saved;
     }
 
     public List<Ticket> findAll() {
         return ticketRepository.findAll();
     }
 
-    public Ticket findById(Long id) {
-        return ticketRepository.findById(id).orElse(null);
-    }
-
     public List<Ticket> findByEstado(String estado) {
         return ticketRepository.findByEstado(estado);
     }
 
-    @Transactional
-    public Ticket createTicket(Ticket ticket) {
-        System.out.println("📝 Criando ticket: " + ticket.getTitulo());
-
-        // Validações
-        if (ticket.getTitulo() == null || ticket.getTitulo().isBlank()) {
-            throw new RuntimeException("Título é obrigatório");
-        }
-        if (ticket.getDescricao() == null || ticket.getDescricao().isBlank()) {
-            throw new RuntimeException("Descrição é obrigatória");
-        }
-        if (ticket.getAbertoPor() == null || ticket.getAbertoPor().getId() == null) {
-            throw new RuntimeException("Utilizador que abre o ticket é obrigatório");
-        }
-
-        ticket.setDataAbertura(LocalDateTime.now());
-        ticket.setEstado("ABERTO");
-        Ticket saved = ticketRepository.save(ticket);
-        System.out.println("💾 Ticket salvo com ID: " + saved.getId());
-
-        System.out.println("🔄 A tentar atribuir técnico...");
-        try {
-            Tecnico tecnico = assignmentService.assignTechnician(saved);
-            if (tecnico != null) {
-                System.out.println("✅ Técnico atribuído: " + tecnico.getUtilizador().getNome());
-                saved.setTecnico(tecnico);
-                saved.setEstado("ATRIBUIDO");
-                ticketRepository.save(saved);
-            } else {
-                System.out.println("❌ Nenhum técnico disponível para atribuição!");
-            }
-        } catch (Exception e) {
-            System.err.println("❌ Erro na atribuição: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return saved;
-    }
-
-    @Transactional
-    public Ticket update(Long id, Ticket ticket) {
-        Ticket existing = ticketRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ticket não encontrado"));
-
-        if (ticket.getTitulo() != null && !ticket.getTitulo().isBlank()) {
-            existing.setTitulo(ticket.getTitulo());
-        }
-        if (ticket.getDescricao() != null && !ticket.getDescricao().isBlank()) {
-            existing.setDescricao(ticket.getDescricao());
-        }
-        if (ticket.getPrioridade() != null && !ticket.getPrioridade().isBlank()) {
-            existing.setPrioridade(ticket.getPrioridade());
-        }
-        if (ticket.getTipo() != null && !ticket.getTipo().isBlank()) {
-            existing.setTipo(ticket.getTipo());
-        }
-        if (ticket.getAtivo() != null && ticket.getAtivo().getId() != null) {
-            existing.setAtivo(ticket.getAtivo());
-        }
-
-        return ticketRepository.save(existing);
+    public Ticket findById(Long id) {
+        return ticketRepository.findById(id).orElse(null);
     }
 
     @Transactional
     public Ticket updateEstado(Long id, String estado) {
-        Ticket existing = ticketRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ticket não encontrado"));
+        logger.info("AUDIT - Atualizando estado do ticket {} para {}", id, estado);
 
-        String estadoUpper = estado.toUpperCase();
-        if (!estadoUpper.matches("ABERTO|ATRIBUIDO|EM_CURSO|RESOLVIDO|FECHADO")) {
-            throw new RuntimeException("Estado inválido. Use: ABERTO, ATRIBUIDO, EM_CURSO, RESOLVIDO ou FECHADO");
-        }
+        Ticket ticket = findById(id);
+        if (ticket != null) {
+            String oldState = ticket.getEstado();
 
-        existing.setEstado(estadoUpper);
-
-        if ("FECHADO".equals(estadoUpper)) {
-            existing.setDataFecho(LocalDateTime.now());
-            if (existing.getTecnico() != null) {
-                Tecnico tecnico = existing.getTecnico();
-                int cargaAtual = tecnico.getCargaTrabalhoAtual();
-                if (cargaAtual > 0) {
-                    tecnico.setCargaTrabalhoAtual(cargaAtual - 1);
+            if ("RESOLVIDO".equals(estado) || "FECHADO".equals(estado)) {
+                Tecnico tecnico = ticket.getTecnico();
+                if (tecnico != null && tecnico.getCargaTrabalhoAtual() > 0) {
+                    tecnico.setCargaTrabalhoAtual(tecnico.getCargaTrabalhoAtual() - 1);
+                    tecnicoRepository.save(tecnico);
+                    logger.info("AUDIT - Carga do técnico {} reduzida para {}",
+                            tecnico.getId(), tecnico.getCargaTrabalhoAtual());
                 }
             }
-        }
 
-        return ticketRepository.save(existing);
+            ticket.setEstado(estado);
+            if ("RESOLVIDO".equals(estado) || "FECHADO".equals(estado)) {
+                ticket.setDataFecho(LocalDateTime.now());
+                logger.info("AUDIT - Ticket {} resolvido em {}", id, ticket.getDataFecho());
+            }
+
+            auditService.logTicketStateChange(id, oldState, estado,
+                    ticket.getAbertoPor() != null ? ticket.getAbertoPor().getId() : null);
+
+            return ticketRepository.save(ticket);
+        }
+        logger.error("Ticket {} não encontrado para atualização", id);
+        return null;
+    }
+
+    @Transactional
+    public Ticket update(Long id, Ticket ticketDetails) {
+        logger.info("AUDIT - Atualizando ticket {}", id);
+        Ticket ticket = findById(id);
+        if (ticket != null) {
+            if (ticketDetails.getTitulo() != null) ticket.setTitulo(ticketDetails.getTitulo());
+            if (ticketDetails.getDescricao() != null) ticket.setDescricao(ticketDetails.getDescricao());
+            if (ticketDetails.getPrioridade() != null) ticket.setPrioridade(ticketDetails.getPrioridade());
+            if (ticketDetails.getEstado() != null) ticket.setEstado(ticketDetails.getEstado());
+            return ticketRepository.save(ticket);
+        }
+        return null;
     }
 
     @Transactional
     public void delete(Long id) {
-        Ticket ticket = ticketRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ticket não encontrado"));
-
-        if (ticket.getTecnico() != null && !"FECHADO".equals(ticket.getEstado())) {
+        logger.info("AUDIT - Removendo ticket {}", id);
+        Ticket ticket = findById(id);
+        if (ticket != null && ticket.getTecnico() != null) {
             Tecnico tecnico = ticket.getTecnico();
-            int cargaAtual = tecnico.getCargaTrabalhoAtual();
-            if (cargaAtual > 0) {
-                tecnico.setCargaTrabalhoAtual(cargaAtual - 1);
+            if (tecnico.getCargaTrabalhoAtual() > 0) {
+                tecnico.setCargaTrabalhoAtual(tecnico.getCargaTrabalhoAtual() - 1);
+                tecnicoRepository.save(tecnico);
             }
         }
-
         ticketRepository.deleteById(id);
+    }
+
+    public List<Ticket> findByTecnicoId(Long tecnicoId) {
+        return ticketRepository.findByTecnicoId(tecnicoId);
+    }
+
+    public List<Ticket> findByAbertoPorId(Long utilizadorId) {
+        return ticketRepository.findByAbertoPorId(utilizadorId);
     }
 }

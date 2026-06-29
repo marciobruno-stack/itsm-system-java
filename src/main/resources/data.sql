@@ -1,60 +1,70 @@
--- ======================================================
--- LIMPAR DADOS EXISTENTES (evita violação de chaves)
--- ======================================================
-DELETE FROM comentario;
-DELETE FROM ticket;
-DELETE FROM tecnico_competencia;
-DELETE FROM tecnico;
-DELETE FROM utilizador;
-DELETE FROM competencia;
-DELETE FROM ativo;
+-- ============================================
+-- LIMPAR DADOS EXISTENTES
+-- ============================================
+TRUNCATE TABLE comentario RESTART IDENTITY CASCADE;
+TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;
+TRUNCATE TABLE tecnico_competencia RESTART IDENTITY CASCADE;
+TRUNCATE TABLE tecnico RESTART IDENTITY CASCADE;
+TRUNCATE TABLE utilizador RESTART IDENTITY CASCADE;
+TRUNCATE TABLE ativo RESTART IDENTITY CASCADE;
+TRUNCATE TABLE competencia RESTART IDENTITY CASCADE;
 
--- ======================================================
--- INSERIR UTILIZADORES
--- ======================================================
-INSERT INTO utilizador (username, password_hash, nome, email, role) VALUES
-                                                                        ('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mrq9ZqWU4lKJvJXcQvLQ5c6v7M8n9O', 'Administrador', 'admin@itsm.com', 'ADMIN'),
-                                                                        ('joao_tec', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mrq9ZqWU4lKJvJXcQvLQ5c6v7M8n9O', 'João Técnico', 'joao@itsm.com', 'TECNICO'),
-                                                                        ('maria_tec', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mrq9ZqWU4lKJvJXcQvLQ5c6v7M8n9O', 'Maria Silva', 'maria@itsm.com', 'TECNICO'),
-                                                                        ('carlos_user', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mrq9ZqWU4lKJvJXcQvLQ5c6v7M8n9O', 'Carlos User', 'carlos@itsm.com', 'UTILIZADOR');
+-- ============================================
+-- RESET SEQUENCES
+-- ============================================
+ALTER SEQUENCE utilizador_id_seq RESTART WITH 9;
+ALTER SEQUENCE tecnico_id_seq RESTART WITH 15;
+ALTER SEQUENCE ticket_id_seq RESTART WITH 1;
+ALTER SEQUENCE ativo_id_seq RESTART WITH 1;
+ALTER SEQUENCE competencia_id_seq RESTART WITH 1;
 
--- ======================================================
--- INSERIR TÉCNICOS (com disponibilidade incluindo DOMINGO)
--- ======================================================
-INSERT INTO tecnico (utilizador_id, disponibilidade, carga_trabalho_atual) VALUES
-                                                                               (2, '{"segunda":["09:00-18:00"],"terca":["09:00-18:00"],"quarta":["09:00-18:00"],"domingo":["09:00-18:00"]}', 0),
-                                                                               (3, '{"segunda":["10:00-19:00"],"quinta":["10:00-19:00"],"sexta":["10:00-19:00"],"domingo":["10:00-16:00"]}', 0);
+-- ============================================
+-- UTILIZADORES
+-- ============================================
+INSERT INTO utilizador (id, username, password_hash, nome, email, role, created_at) VALUES
+                                                                                        (9, 'admin', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Administrador', 'admin@itsm.com', 'ADMIN', NOW()),
+                                                                                        (12, 'tecnico1', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Joao Tecnico', 'joao@itsm.com', 'TECNICO', NOW()),
+                                                                                        (13, 'tecnico2', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Maria Tecnico', 'maria@itsm.com', 'TECNICO', NOW()),
+                                                                                        (14, 'tecnico3', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'Carlos Tecnico', 'carlos@itsm.com', 'TECNICO', NOW());
 
--- ======================================================
--- INSERIR COMPETÊNCIAS
--- ======================================================
-INSERT INTO competencia (nome) VALUES ('Redes'), ('Windows Server'), ('Linux'), ('SQL'), ('Java');
+-- ============================================
+-- COMPETÊNCIAS
+-- ============================================
+INSERT INTO competencia (id, nome) VALUES
+                                       (1, 'Redes'),
+                                       (2, 'Windows Server'),
+                                       (3, 'Linux'),
+                                       (4, 'SQL'),
+                                       (5, 'Java');
 
--- ======================================================
--- ASSOCIAR COMPETÊNCIAS A TÉCNICOS
--- ======================================================
+-- ============================================
+-- TÉCNICOS (IDs alinhados com utilizadores)
+-- ============================================
+INSERT INTO tecnico (id, utilizador_id, disponibilidade, carga_trabalho_atual) VALUES
+                                                                                   (15, 12, '{"segunda":["09:00-18:00"],"terca":["09:00-18:00"],"quarta":["09:00-18:00"],"quinta":["09:00-18:00"],"sexta":["09:00-18:00"]}', 0),
+                                                                                   (16, 13, '{"segunda":["09:00-18:00"],"terca":["09:00-18:00"],"quarta":["09:00-18:00"],"quinta":["09:00-18:00"],"sexta":["09:00-18:00"]}', 0),
+                                                                                   (17, 14, '{"segunda":["09:00-18:00"],"terca":["09:00-18:00"],"quarta":["09:00-18:00"],"quinta":["09:00-18:00"],"sexta":["09:00-18:00"]}', 0);
+
+-- ============================================
+-- TÉCNICO-COMPETÊNCIAS
+-- ============================================
 INSERT INTO tecnico_competencia (tecnico_id, competencia_id) VALUES
-                                                                 (1, 1), (1, 2),   -- João: Redes, Windows Server
-                                                                 (2, 3), (2, 4), (2, 5); -- Maria: Linux, SQL, Java
+                                                                 (15, 1), -- Joao → Redes
+                                                                 (15, 2), -- Joao → Windows Server
+                                                                 (16, 3), -- Maria → Linux
+                                                                 (16, 4), -- Maria → SQL
+                                                                 (17, 5); -- Carlos → Java
 
--- ======================================================
--- INSERIR ATIVOS
--- ======================================================
-INSERT INTO ativo (tipo, nome, estado, data_aquisicao, especificacoes) VALUES
-                                                                           ('SERVIDOR', 'Servidor de Base de Dados', 'OPERACIONAL', '2023-01-10', '32GB RAM, 4 vCPUs'),
-                                                                           ('COMPUTADOR', 'Portátil João', 'OPERACIONAL', '2023-05-20', '16GB RAM, SSD 512GB'),
-                                                                           ('SWITCH', 'Switch Core', 'AVARIADO', '2022-11-01', '48 portas gigabit');
+-- ============================================
+-- ATIVOS
+-- ============================================
+INSERT INTO ativo (id, tipo, nome, estado, data_aquisicao, especificacoes, created_at) VALUES
+                                                                                           (1, 'SERVIDOR', 'Servidor Base de Dados', 'OPERACIONAL', '2023-01-10', '32GB RAM, 4 vCPUs, 1TB SSD', NOW()),
+                                                                                           (2, 'COMPUTADOR', 'Portatil Joao', 'OPERACIONAL', '2024-02-15', '16GB RAM, 512GB SSD, i7', NOW()),
+                                                                                           (3, 'SWITCH', 'Switch Core', 'OPERACIONAL', '2023-06-01', '48 portas Gigabit', NOW());
 
--- ======================================================
--- INSERIR TICKETS INICIAIS
--- ======================================================
-INSERT INTO ticket (titulo, descricao, prioridade, tipo, estado, data_abertura, tecnico_id, aberto_por_id, ativo_id) VALUES
-                                                                                                                         ('Problema de rede', 'Acesso à internet intermitente', 'ALTA', 'INCIDENTE', 'ATRIBUIDO', CURRENT_TIMESTAMP, 1, 4, 3),
-                                                                                                                         ('Instalar software', 'Necessito do pacote Office no PC', 'MEDIA', 'PEDIDO', 'ABERTO', CURRENT_TIMESTAMP, NULL, 4, 2),
-                                                                                                                         ('Servidor lento', 'Base de dados está com resposta lenta', 'CRITICA', 'INCIDENTE', 'EM_CURSO', CURRENT_TIMESTAMP, 2, 1, 1);
-
--- ======================================================
--- INSERIR COMENTÁRIO INICIAL
--- ======================================================
-INSERT INTO comentario (texto, data_hora, ticket_id, tecnico_id) VALUES
-    ('Estou a analisar a configuração do switch', CURRENT_TIMESTAMP, 1, 1);
+-- ============================================
+-- TICKETS (com estado ABERTO)
+-- ============================================
+INSERT INTO ticket (id, titulo, descricao, prioridade, tipo, estado, data_abertura, data_fecho, tecnico_id, aberto_por_id, ativo_id) VALUES
+    (1, 'Problema de rede', 'Acesso à internet intermitente no setor administrativo', 'ALTA', 'INCIDENTE', 'ABERTO', NOW(), NULL, NULL, 9, 3);

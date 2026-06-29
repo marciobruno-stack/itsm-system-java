@@ -18,10 +18,15 @@ public class DisponibilidadeUtils {
         try {
             Map<String, List<String>> disponibilidade = mapper.readValue(disponibilidadeJson,
                     new TypeReference<Map<String, List<String>>>() {});
-            String diaStr = dia.toString().toLowerCase();
+
+            // 🔧 CONVERTER DIA PARA PORTUGUÊS
+            String diaStr = converterDiaParaPortugues(dia);
+            System.out.println("   📅 Dia procurado: " + diaStr);
+
             List<String> intervalos = disponibilidade.get(diaStr);
             if (intervalos == null) {
                 System.out.println("   ⚠️ Sem intervalo para " + diaStr);
+                System.out.println("   📋 Dias disponíveis: " + disponibilidade.keySet());
                 return false;
             }
             for (String intervalo : intervalos) {
@@ -29,13 +34,27 @@ public class DisponibilidadeUtils {
                 LocalTime inicio = LocalTime.parse(parts[0]);
                 LocalTime fim = LocalTime.parse(parts[1]);
                 if (!hora.isBefore(inicio) && !hora.isAfter(fim)) {
+                    System.out.println("   ✅ Disponível das " + inicio + " às " + fim);
                     return true;
                 }
             }
+            System.out.println("   ❌ Fora do horário de expediente");
             return false;
         } catch (Exception e) {
             System.out.println("   ❌ Erro ao ler disponibilidade: " + e.getMessage());
             return true;
         }
+    }
+
+    private static String converterDiaParaPortugues(DayOfWeek dia) {
+        return switch (dia) {
+            case MONDAY -> "segunda";
+            case TUESDAY -> "terca";
+            case WEDNESDAY -> "quarta";
+            case THURSDAY -> "quinta";
+            case FRIDAY -> "sexta";
+            case SATURDAY -> "sabado";
+            case SUNDAY -> "domingo";
+        };
     }
 }

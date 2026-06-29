@@ -4,9 +4,10 @@ import com.itsm.incidentmanagement.model.entity.*;
 import com.itsm.incidentmanagement.service.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import java.util.HashSet;
+
 import java.util.List;
 import java.util.Scanner;
+import java.util.HashSet;
 import java.util.Set;
 
 @Component
@@ -158,13 +159,12 @@ public class ConsoleApplication implements CommandLineRunner {
         Utilizador utilizador = new Utilizador();
         utilizador.setId(utilizadorId);
 
-        Ticket ticket = Ticket.builder()
-                .titulo(titulo)
-                .descricao(descricao)
-                .prioridade(prioridade)
-                .tipo(tipo)
-                .abertoPor(utilizador)
-                .build();
+        Ticket ticket = new Ticket();
+        ticket.setTitulo(titulo);
+        ticket.setDescricao(descricao);
+        ticket.setPrioridade(prioridade);
+        ticket.setTipo(tipo);
+        ticket.setAbertoPor(utilizador);
 
         if (ativoId > 0) {
             Ativo ativo = new Ativo();
@@ -235,13 +235,9 @@ public class ConsoleApplication implements CommandLineRunner {
         ));
     }
 
-    /**
-     * NOVO MÉTODO: Criar técnico
-     */
     private void criarTecnico(Scanner scanner) {
         System.out.println("\n--- CRIAR TÉCNICO ---");
 
-        // Listar utilizadores disponíveis
         System.out.println("\n📋 Utilizadores disponíveis:");
         List<Utilizador> utilizadores = utilizadorService.findAll();
         utilizadores.forEach(u -> System.out.printf(
@@ -264,16 +260,15 @@ public class ConsoleApplication implements CommandLineRunner {
         }
 
         if (!"TECNICO".equals(utilizador.getRole())) {
-            System.out.println("⚠️  Este utilizador não tem role TECNICO. O técnico será criado na mesma, mas o role não está correto.");
+            System.out.println("⚠️  Este utilizador não tem role TECNICO.");
         }
 
-        System.out.print("Disponibilidade (JSON, ex: {\"segunda\":[\"09:00-18:00\"],\"terca\":[\"09:00-18:00\"]}): ");
+        System.out.print("Disponibilidade (JSON, ex: {\"segunda\":[\"09:00-18:00\"]}): ");
         String disponibilidade = scanner.nextLine().trim();
         if (disponibilidade.isBlank()) {
-            disponibilidade = "{}"; // JSON vazio
+            disponibilidade = "{}";
         }
 
-        // Listar competências disponíveis
         System.out.println("\n📋 Competências disponíveis:");
         List<Competencia> competencias = competenciaService.findAll();
         competencias.forEach(c -> System.out.printf(
@@ -283,13 +278,11 @@ public class ConsoleApplication implements CommandLineRunner {
         System.out.print("\nIDs das Competências (separados por vírgula, ex: 1,2,3) - Enter para nenhuma: ");
         String competenciasStr = scanner.nextLine().trim();
 
-        // Criar técnico
         Tecnico tecnico = new Tecnico();
         tecnico.setUtilizador(utilizador);
         tecnico.setDisponibilidade(disponibilidade);
         tecnico.setCargaTrabalhoAtual(0);
 
-        // Adicionar competências
         Set<Competencia> competenciasSet = new HashSet<>();
         if (!competenciasStr.isBlank()) {
             String[] ids = competenciasStr.split(",");
@@ -299,8 +292,6 @@ public class ConsoleApplication implements CommandLineRunner {
                     Competencia comp = competenciaService.findById(id);
                     if (comp != null) {
                         competenciasSet.add(comp);
-                    } else {
-                        System.out.println("⚠️  Competência ID " + id + " não encontrada, ignorando.");
                     }
                 } catch (NumberFormatException e) {
                     System.out.println("⚠️  ID inválido: '" + idStr + "', ignorando.");

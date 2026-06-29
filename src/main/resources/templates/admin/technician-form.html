@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Novo Técnico - ITSM</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f4f4f4; }
+        .header { background: #1a237e; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .header a { color: white; margin: 0 10px; text-decoration: none; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 5px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .btn { background: #1a237e; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-secondary { background: #666; }
+        .alert-error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 ITSM - Gestão de Infraestruturas</h1>
+        <div>
+            <a href="/admin/dashboard">Dashboard</a>
+            <a href="/admin/users">Utilizadores</a>
+            <a href="/admin/technicians">Técnicos</a>
+            <a href="/admin/tickets">Tickets</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🔧 Novo Técnico</h2>
+        <div th:if="${error}" class="alert-error" th:text="${error}"></div>
+        <form th:action="@{/admin/technicians}" method="post" th:object="${tecnico}">
+            <div class="form-group">
+                <label>Utilizador</label>
+                <select name="utilizadorId" required>
+                    <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.nome} + ' (' + ${user.username} + ')'"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Disponibilidade</label>
+                <select th:field="*{disponibilidade}">
+                    <option value="DISPONIVEL">Disponível</option>
+                    <option value="OCUPADO">Ocupado</option>
+                    <option value="FERIAS">Férias</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Salvar</button>
+            <a href="/admin/technicians" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</body>
+</html>

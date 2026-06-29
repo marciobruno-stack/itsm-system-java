@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Ticket #' + ${ticket.id}">Ticket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .status-badge { font-size: 14px; padding: 8px 16px; border-radius: 20px; }
+        .card { border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .card-header { border-radius: 15px 15px 0 0 !important; }
+        .priority-high { background-color: #dc3545; color: white; }
+        .priority-medium { background-color: #ffc107; color: #212529; }
+        .priority-low { background-color: #28a745; color: white; }
+        .priority-critical { background-color: #6f42c1; color: white; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin/tickets">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+        <span class="navbar-text text-white">
+                <i class="bi bi-ticket"></i> Detalhes do Ticket #<span th:text="${ticket.id}">0</span>
+            </span>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Informações principais -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0" th:text="${ticket.titulo}">Título</h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text" th:text="${ticket.descricao}">Descrição</p>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Criado em:</small>
+                            <p class="fw-semibold" th:text="${#temporals.format(ticket.dataAbertura, 'dd/MM/yyyy HH:mm')}">-</p>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Fechado em:</small>
+                            <p class="fw-semibold" th:text="${ticket.dataFecho != null ? #temporals.format(ticket.dataFecho, 'dd/MM/yyyy HH:mm') : 'Aberto'}">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comentários -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Comentários</h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${ticket.comentarios != null and !ticket.comentarios.isEmpty()}">
+                        <div th:each="c : ${ticket.comentarios}" class="border-bottom pb-2 mb-2">
+                            <p class="mb-0" th:text="${c.texto}">Comentário</p>
+                            <small class="text-muted">
+                                <i class="bi bi-person"></i> <span th:text="${c.tecnico.utilizador.nome}">Técnico</span>
+                                - <span th:text="${#temporals.format(c.dataHora, 'dd/MM/yyyy HH:mm')}">Data</span>
+                            </small>
+                        </div>
+                    </div>
+                    <div th:if="${ticket.comentarios == null or ticket.comentarios.isEmpty()}">
+                        <p class="text-muted text-center">Nenhum comentário</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Estado -->
+            <div class="card mb-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Estado</h5>
+                </div>
+                <div class="card-body text-center">
+                        <span class="status-badge"
+                              th:class="${ticket.estado == 'ABERTO' ? 'bg-warning text-dark' :
+                                         ticket.estado == 'ATRIBUIDO' ? 'bg-info text-white' :
+                                         ticket.estado == 'EM_CURSO' ? 'bg-primary text-white' :
+                                         ticket.estado == 'RESOLVIDO' ? 'bg-success text-white' : 'bg-secondary text-white'}"
+                              th:text="${ticket.estado}">ABERTO</span>
+                </div>
+            </div>
+
+            <!-- Prioridade -->
+            <div class="card mb-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Prioridade</h5>
+                </div>
+                <div class="card-body text-center">
+                        <span class="badge priority-${ticket.prioridade.toLowerCase()}"
+                              th:class="${ticket.prioridade == 'CRITICA' ? 'priority-critical' :
+                                         ticket.prioridade == 'ALTA' ? 'priority-high' :
+                                         ticket.prioridade == 'MEDIA' ? 'priority-medium' : 'priority-low'}"
+                              style="font-size: 16px; padding: 8px 20px; border-radius: 20px;">
+                            <i class="bi bi-flag-fill"></i>
+                            <span th:text="${ticket.prioridade}">ALTA</span>
+                        </span>
+                </div>
+            </div>
+
+            <!-- Técnico -->
+            <div class="card mb-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-person-gear"></i> Técnico</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div th:if="${ticket.tecnico != null}">
+                        <p class="fw-bold mb-0" th:text="${ticket.tecnico.utilizador.nome}">João Técnico</p>
+                        <small class="text-muted">Carga: <span th:text="${ticket.tecnico.cargaTrabalhoAtual}">0</span> tickets</small>
+                    </div>
+                    <div th:if="${ticket.tecnico == null}">
+                        <p class="text-muted">Não atribuído</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Utilizador que abriu -->
+            <div class="card mb-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-person"></i> Aberto por</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="fw-bold mb-0" th:text="${ticket.abertoPor.nome}">Carlos User</p>
+                    <small class="text-muted" th:text="${ticket.abertoPor.email}">email</small>
+                </div>
+            </div>
+
+            <!-- Ativo -->
+            <div class="card mb-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-server"></i> Ativo</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div th:if="${ticket.ativo != null}">
+                        <p class="fw-bold mb-0" th:text="${ticket.ativo.nome}">Servidor</p>
+                        <small class="text-muted" th:text="${ticket.ativo.tipo}">Tipo</small>
+                    </div>
+                    <div th:if="${ticket.ativo == null}">
+                        <p class="text-muted">Nenhum ativo associado</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ações -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Ações</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/tecnico/tickets/{id}/update-state(id=${ticket.id})}" method="post" class="d-grid gap-2">
+                        <div class="input-group">
+                            <select class="form-select" name="estado">
+                                <option value="ABERTO" th:selected="${ticket.estado == 'ABERTO'}">ABERTO</option>
+                                <option value="ATRIBUIDO" th:selected="${ticket.estado == 'ATRIBUIDO'}">ATRIBUIDO</option>
+                                <option value="EM_CURSO" th:selected="${ticket.estado == 'EM_CURSO'}">EM_CURSO</option>
+                                <option value="RESOLVIDO" th:selected="${ticket.estado == 'RESOLVIDO'}">RESOLVIDO</option>
+                                <option value="FECHADO" th:selected="${ticket.estado == 'FECHADO'}">FECHADO</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check2-circle"></i> Atualizar
+                            </button>
+                        </div>
+                    </form>
+                    <a th:href="'/admin/tickets/delete/' + ${ticket.id}"
+                       class="btn btn-danger w-100 mt-2"
+                       onclick="return confirm('Confirmar remoção do ticket?')">
+                        <i class="bi bi-trash"></i> Remover Ticket
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

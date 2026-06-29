@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Novo Ticket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card { border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .card-header {
+            border-radius: 15px 15px 0 0 !important;
+            background: linear-gradient(135deg, #0dcaf0 0%, #0d6efd 100%);
+            color: white;
+        }
+        .form-label { font-weight: 600; }
+        .required::after { content: " *"; color: red; }
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #0dcaf0 0%, #0d6efd 100%);
+            border: none;
+            color: white;
+            padding: 12px;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(13, 110, 253, 0.4);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-info">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/utilizador/dashboard">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+        <span class="navbar-text text-white">
+                <i class="bi bi-plus-circle"></i> Novo Ticket
+            </span>
+        <span class="navbar-text text-white">
+                <i class="bi bi-person-circle"></i> <span th:text="${username}">Utilizador</span>
+            </span>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Criar Novo Ticket</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Mensagens de erro/sucesso -->
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${error}">Erro</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span th:text="${success}">Sucesso</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+
+                    <form th:action="@{/utilizador/tickets}" th:object="${ticket}" method="post">
+                        <!-- ID do Utilizador (hidden) -->
+                        <input type="hidden" th:field="*{abertoPor.id}" th:value="${session.username != null ? utilizadorService.findByUsername(session.username).id : ''}" />
+
+                        <!-- Título -->
+                        <div class="mb-3">
+                            <label class="form-label required">
+                                <i class="bi bi-ticket"></i> Título
+                            </label>
+                            <input type="text" class="form-control form-control-lg"
+                                   th:field="*{titulo}" placeholder="Ex: Problema de rede" required>
+                        </div>
+
+                        <!-- Descrição -->
+                        <div class="mb-3">
+                            <label class="form-label required">
+                                <i class="bi bi-text-paragraph"></i> Descrição
+                            </label>
+                            <textarea class="form-control" th:field="*{descricao}"
+                                      rows="5" placeholder="Descreva o problema em detalhe..." required></textarea>
+                        </div>
+
+                        <!-- Prioridade -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">
+                                    <i class="bi bi-flag"></i> Prioridade
+                                </label>
+                                <select class="form-select" th:field="*{prioridade}" required>
+                                    <option value="BAIXA">BAIXA</option>
+                                    <option value="MEDIA">MEDIA</option>
+                                    <option value="ALTA" selected>ALTA</option>
+                                    <option value="CRITICA">CRITICA</option>
+                                </select>
+                            </div>
+
+                            <!-- Tipo -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">
+                                    <i class="bi bi-tag"></i> Tipo
+                                </label>
+                                <select class="form-select" th:field="*{tipo}" required>
+                                    <option value="INCIDENTE" selected>INCIDENTE</option>
+                                    <option value="PEDIDO">PEDIDO</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Técnico (opcional) -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-person-gear"></i> Técnico (opcional)
+                            </label>
+                            <select class="form-select" name="tecnicoId">
+                                <option value="">Atribuição automática</option>
+                                <option th:each="t : ${tecnicos}" th:value="${t.id}"
+                                        th:text="${t.utilizador.nome}">João Técnico</option>
+                            </select>
+                            <small class="text-muted">* Deixar em branco para atribuição automática</small>
+                        </div>
+
+                        <!-- Ativo (opcional) -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-server"></i> Ativo (opcional)
+                            </label>
+                            <select class="form-select" name="ativoId">
+                                <option value="">Nenhum</option>
+                                <option th:each="a : ${ativos}" th:value="${a.id}"
+                                        th:text="${a.nome + ' (' + a.tipo + ')'}">Servidor</option>
+                            </select>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="/utilizador/dashboard" class="btn btn-secondary me-md-2">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary-custom">
+                                <i class="bi bi-check-circle"></i> Criar Ticket
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Informação sobre atribuição automática -->
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <small><i class="bi bi-info-circle"></i> Sobre a atribuição</small>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0 small">
+                        <li>O sistema atribui automaticamente o ticket ao técnico mais adequado</li>
+                        <li>Baseia-se em: <strong>competências</strong> + <strong>disponibilidade</strong> + <strong>carga de trabalho</strong></li>
+                        <li>Se não houver técnico disponível, o ticket fica em estado <span class="badge bg-warning text-dark">ABERTO</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
