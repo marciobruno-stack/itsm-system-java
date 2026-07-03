@@ -263,7 +263,7 @@ taskkill /PID <PID> /F
 
 Para questões, reporte um issue no repositório ou contacte o autor:
 
-- Email: marcio.bruno.stack@gmail.com
+- Email: marciobrruno@gmail.com
 - GitHub: https://github.com/marciobruno-stack
 
 ---
