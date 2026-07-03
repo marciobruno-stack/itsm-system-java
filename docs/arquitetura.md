@@ -1,10 +1,3 @@
-Aqui está o ficheiro `arquitetura.md` corrigido e **bem formatado**:
-
----
-
-## 📁 `docs/arquitetura.md` 
-
-```markdown
 # Arquitetura do Sistema ITSM
 
 ## Visão Geral
@@ -24,7 +17,7 @@ O sistema é uma aplicação Spring Boot que implementa um sistema de gestão de
 | **H2 Database** | Base de dados em memória (desenvolvimento) |
 | **PostgreSQL** | Base de dados (produção) |
 | **Maven** | Gestão de dependências |
-| **Swagger/OpenAPI** | Documentação da API |
+| **Swagger / OpenAPI** | Documentação da API |
 | **JUnit 5 + Mockito** | Testes unitários |
 | **SLF4J + Logback** | Logs e auditoria |
 | **Lombok** | Redução de código boilerplate |
@@ -65,7 +58,7 @@ O sistema é uma aplicação Spring Boot que implementa um sistema de gestão de
 
 | Controller | Endpoint Base | Descrição |
 |------------|---------------|-----------|
-| `AuthController` | `/api/auth` | Autenticação (login/register) |
+| `AuthController` | `/api/auth` | Autenticação (login / register) |
 | `TicketController` | `/api/tickets` | Gestão de tickets |
 | `TecnicoController` | `/api/tecnicos` | Gestão de técnicos |
 | `AtivoController` | `/api/ativos` | Gestão de ativos |
@@ -102,7 +95,7 @@ O sistema é uma aplicação Spring Boot que implementa um sistema de gestão de
 |----------|-----------|
 | `Utilizador` | Utilizador do sistema |
 | `Tecnico` | Técnico (relação 1:1 com Utilizador) |
-| `Ticket` | Ticket de incidente/pedido |
+| `Ticket` | Ticket de incidente / pedido |
 | `Ativo` | Ativo de infraestrutura |
 | `Competencia` | Competência de um técnico |
 | `Comentario` | Comentários em tickets |
@@ -263,10 +256,3 @@ Utilizador    Controller    TicketService    AssignmentService    CacheService  
 | 4 | Implementação funcional | ✅ Concluído |
 | 5 | Segurança e testes | ✅ Concluído |
 | 6 | Otimização e documentação | ✅ Concluído |
-
----
-
-```
-
----
-
