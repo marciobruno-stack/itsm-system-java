@@ -49,6 +49,22 @@ mvnw.cmd clean spring-boot:run
 
 Consulte `docs/manual-instalacao.md` para instruções detalhadas de configuração (H2 / PostgreSQL), criação de JAR, variáveis de ambiente e resolução de problemas.
 
+## Diagramas e Capturas de Ecrã
+
+Arquitetura (camadas):
+
+![Arquitetura](docs/images/architecture.svg)
+
+Diagrama de sequência (atribuição de ticket):
+
+![Sequência de Atribuição](docs/images/sequence.svg)
+
+Ecrã de Login (exemplo):
+
+![Login Screenshot](docs/images/screenshot-login.svg)
+
+> Se preferir PNG em vez de SVG, posso gerar versões PNG e adicionar ao repositório.
+
 ## Configuração rápida
 
 - Defina `JWT_SECRET` ou ajuste `jwt.secret` no `application.properties` (não comite segredos).
@@ -80,7 +96,7 @@ Desenvolvedor: marcio.bruno.stack
 
 ---
 
-Arquivo de documentação importantes:
+Arquivos de documentação importantes:
 
 - docs/manual-instalacao.md — Manual de instalação e utilização
 - docs/arquitetura.md — Documentação da arquitetura
