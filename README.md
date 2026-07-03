@@ -91,7 +91,7 @@ Veja a documentação Swagger para a lista completa. Principais endpoints:
 ## Contacto
 
 Desenvolvedor: marcio.bruno.stack
-- Email: marcio.bruno.stack@gmail.com
+- Email: marciobrruno@gmail.com
 - GitHub: https://github.com/marciobruno-stack
 
 ---
