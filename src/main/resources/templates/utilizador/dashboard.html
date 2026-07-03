@@ -2,72 +2,122 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITSM - Dashboard Utilizador</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%); color: white; padding: 20px 0; }
+        .sidebar .brand { text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar .brand h3 { color: #ecf0f1; font-weight: 300; }
+        .sidebar .brand h3 span { color: #3498db; font-weight: 600; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.7); padding: 12px 25px; border-radius: 8px; margin: 5px 10px; transition: all 0.3s; }
+        .sidebar .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar .nav-link.active { background: #3498db; color: white; }
+        .sidebar .nav-link i { margin-right: 10px; width: 20px; text-align: center; }
+        .main-content { padding: 30px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+        .card-header { background: white; border-bottom: 1px solid #eef2f7; padding: 20px 25px; border-radius: 12px 12px 0 0 !important; }
+        .table th { border-top: none; color: #6c757d; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .stats-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .stats-card .number { font-size: 2rem; font-weight: 700; color: #2c3e50; }
+        .stats-card .label { color: #6c757d; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stats-card .icon { font-size: 2.5rem; opacity: 0.2; float: right; }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-dark bg-primary">
-    <div class="container-fluid">
-        <span class="navbar-brand">ITSM - Admin</span>
-        <span class="navbar-text text-white">
-                Bem-vindo, <span th:text="${username}">Admin</span>
-                <span class="badge bg-warning text-dark" th:text="${role}">ADMIN</span>
-            </span>
-        <a href="/logout" class="btn btn-outline-light btn-sm">Sair</a>
-    </div>
-</nav>
 
-<div class="container mt-4">
-    <h2>Dashboard Administrativo</h2>
-    <p>Bem-vindo, <strong th:text="${username}">Admin</strong>!</p>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar">
+            <div class="brand">
+                <h3>ITSM</h3>
+                <small style="color: #bdc3c7;">Gestão de Incidentes</small>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link active" href="/utilizador/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/utilizador/tickets"><i class="fas fa-ticket-alt"></i> Meus Tickets</a></li>
+                <li class="nav-item"><a class="nav-link" href="/utilizador/new-ticket"><i class="fas fa-plus-circle"></i> Novo Ticket</a></li>
+                <li class="nav-item mt-4"><a class="nav-link" href="/logout" style="color: #e74c3c;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
 
-    <div class="row g-3">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5>👥 Utilizadores</h5>
-                    <h2 th:text="${totalUsers}">0</h2>
+        <!-- Main Content -->
+        <div class="col-md-10 main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Bem-vindo, <span th:text="${username}">Utilizador</span>!</h2>
+                <div>
+                    <span class="badge bg-info me-2" th:text="${role}">UTILIZADOR</span>
+                    <a href="/logout" class="btn btn-outline-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5>🔧 Técnicos</h5>
-                    <h2 th:text="${totalTecnicos}">0</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-dark">
-                <div class="card-body">
-                    <h5>🎫 Tickets Abertos</h5>
-                    <h2 th:text="${ticketsAbertos}">0</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h5>🏷️ Competências</h5>
-                    <h2 th:text="${totalCompetencias}">0</h2>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <a href="/admin/users" class="btn btn-primary w-100">👥 Utilizadores</a>
-        </div>
-        <div class="col-md-3">
-            <a href="/admin/technicians" class="btn btn-success w-100">🔧 Técnicos</a>
-        </div>
-        <div class="col-md-3">
-            <a href="/admin/tickets" class="btn btn-warning w-100">🎫 Tickets</a>
-        </div>
-        <div class="col-md-3">
-            <a href="/utilizador/new-ticket" class="btn btn-info w-100">➕ Novo Ticket</a>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="icon"><i class="fas fa-ticket-alt"></i></div>
+                        <div class="number" th:text="${totalTickets}">0</div>
+                        <div class="label">Meus Tickets</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="icon"><i class="fas fa-clock"></i></div>
+                        <div class="number" th:text="${ticketsAbertos}">0</div>
+                        <div class="label">Abertos</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="icon"><i class="fas fa-spinner"></i></div>
+                        <div class="number" th:text="${ticketsEmAndamento}">0</div>
+                        <div class="label">Em Andamento</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <a href="/utilizador/new-ticket" class="btn btn-primary btn-lg"><i class="fas fa-plus-circle"></i> Abrir Novo Ticket</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h5>Meus Tickets Recentes</h5></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                            <tr>
+                                <th>ID</th><th>Título</th><th>Estado</th><th>Prioridade</th><th>Técnico</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${meusTickets == null or meusTickets.isEmpty()}">
+                                <td colspan="5" class="text-center py-4">
+                                    <i class="fas fa-inbox fa-2x text-muted mb-2 d-block"></i>
+                                    <span class="text-muted">Nenhum ticket registado</span>
+                                </td>
+                            </tr>
+                            <tr th:each="ticket : ${meusTickets}">
+                                <td th:text="${ticket.id}"></td>
+                                <td th:text="${ticket.titulo}"></td>
+                                <td>
+                                    <span class="badge" th:class="${ticket.estado == 'ABERTO' ? 'bg-warning' : ticket.estado == 'ATRIBUIDO' ? 'bg-info' : ticket.estado == 'EM_CURSO' ? 'bg-primary' : ticket.estado == 'RESOLVIDO' ? 'bg-success' : 'bg-secondary'}" th:text="${ticket.estado}"></span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:class="${ticket.prioridade == 'CRITICA' ? 'bg-danger' : ticket.prioridade == 'ALTA' ? 'bg-warning' : ticket.prioridade == 'MEDIA' ? 'bg-info' : 'bg-secondary'}" th:text="${ticket.prioridade}"></span>
+                                </td>
+                                <td th:text="${ticket.tecnico != null ? ticket.tecnico.utilizador.nome : 'Não atribuído'}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -138,6 +138,17 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
+			<!-- ⭐ PLUGIN EXEC ADICIONADO -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<mainClass>com.itsm.incidentmanagement.TestPassword</mainClass>
+				</configuration>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -153,7 +164,6 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
-			<!-- Jacoco para cobertura de testes (APENAS UMA DECLARAÇÃO) -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>

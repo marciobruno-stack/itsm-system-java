@@ -1,63 +1,105 @@
 ﻿<!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Competecias - ITSM</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITSM - Competências</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial; margin: 0; padding: 20px; background: #f0f2f5; }
-        .header { background: #1a237e; color: white; padding: 20px; }
-        .menu a { color: white; margin: 0 15px; text-decoration: none; }
-        .menu a:hover { text-decoration: underline; }
-        .container { max-width: 1200px; margin: 20px auto; }
-        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn { background: #1a237e; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-danger { background: #d32f2f; }
-        .card { background: white; padding: 20px; border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #e8eaf6; padding: 10px; text-align: left; }
-        td { padding: 10px; border-bottom: 1px solid #ddd; }
-        .badge { background: #e8eaf6; padding: 5px 15px; border-radius: 20px; }
-        .alert { padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-        .alert-success { background: #c8e6c9; color: #1b5e20; }
-        .alert-error { background: #ffcdd2; color: #b71c1c; }
-        .actions a { margin: 0 5px; padding: 5px 10px; border-radius: 3px; text-decoration: none; color: white; font-size: 12px; }
-        .actions .delete { background: #d32f2f; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%); color: white; padding: 20px 0; }
+        .sidebar .brand { text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar .brand h3 { color: #ecf0f1; font-weight: 300; }
+        .sidebar .brand h3 span { color: #3498db; font-weight: 600; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.7); padding: 12px 25px; border-radius: 8px; margin: 5px 10px; transition: all 0.3s; }
+        .sidebar .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar .nav-link.active { background: #3498db; color: white; }
+        .sidebar .nav-link i { margin-right: 10px; width: 20px; text-align: center; }
+        .main-content { padding: 30px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+        .card-header { background: white; border-bottom: 1px solid #eef2f7; padding: 20px 25px; border-radius: 12px 12px 0 0 !important; }
+        .table th { border-top: none; color: #6c757d; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .btn-action { padding: 5px 10px; margin: 0 2px; border-radius: 6px; font-size: 0.85rem; }
+        .alert { border-radius: 10px; border: none; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>ITSM - Gestao de Infraestruturas</h1>
-        <div class="menu">
-            <a href="/admin/dashboard">Dashboard</a>
-            <a href="/admin/users">Utilizadores</a>
-            <a href="/admin/technicians">Tecnicos</a>
-            <a href="/admin/tickets">Tickets</a>
-            <a href="/admin/competencias">Competecias</a>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar">
+            <div class="brand">
+                <h3>ITSM</h3>
+                <small style="color: #bdc3c7;">Gestão de Incidentes</small>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/tickets"><i class="fas fa-ticket-alt"></i> Tickets</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/users"><i class="fas fa-users"></i> Utilizadores</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/technicians"><i class="fas fa-user-cog"></i> Técnicos</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/admin/competencias"><i class="fas fa-tasks"></i> Competências</a></li>
+                <li class="nav-item mt-4"><a class="nav-link" href="/logout" style="color: #e74c3c;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Competências</h2>
+                    <p class="text-muted">Gerencie as competências dos técnicos</p>
+                </div>
+                <div>
+                    <a href="/admin/competencias/new" class="btn btn-primary"><i class="fas fa-plus"></i> Nova Competência</a>
+                </div>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">Lista de Competências</h5></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                            <tr>
+                                <th>ID</th><th>Nome</th><th class="text-center">Ações</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="c : ${competencias}">
+                                <td th:text="${c.id}"></td>
+                                <td><span class="badge bg-info" th:text="${c.nome}"></span></td>
+                                <td class="text-center">
+                                    <a th:href="@{/admin/competencias/delete/{id}(id=${c.id})}" class="btn btn-sm btn-outline-danger btn-action" onclick="return confirm('Tem certeza que deseja remover esta competência?')"><i class="fas fa-trash"></i></a>
+                                </td>
+                            </tr>
+                            <tr th:if="${competencias == null or competencias.isEmpty()}">
+                                <td colspan="3" class="text-center py-4">
+                                    <i class="fas fa-tasks fa-2x text-muted mb-2 d-block"></i>
+                                    <p class="text-muted">Nenhuma competência registada</p>
+                                    <a href="/admin/competencias/new" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Criar primeira competência</a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
-    <div class="container">
-        <div class="toolbar">
-            <h2>Competecias</h2>
-            <a href="/admin/competencias/new" class="btn">+ Nova Competencia</a>
-        </div>
-
-        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
-
-        <div class="card">
-            <table>
-                <tr>
-                    <th>ID</th><th>Nome</th><th>Acoes</th>
-                </tr>
-                <tr th:each="c : ${competencias}">
-                    <td th:text="${c.id}">1</td>
-                    <td><span class="badge" th:text="${c.nome}">Java</span></td>
-                    <td class="actions">
-                        <a th:href="'/admin/competencias/delete/' + ${c.id}" class="delete" onclick="return confirm('Tem certeza?')">Remover</a>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

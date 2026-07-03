@@ -2,6 +2,8 @@ package com.itsm.incidentmanagement.service;
 
 import com.itsm.incidentmanagement.model.entity.*;
 import com.itsm.incidentmanagement.repository.*;
+import com.itsm.incidentmanagement.service.AuditService;
+import com.itsm.incidentmanagement.service.TicketService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,12 +23,15 @@ class TicketServiceTest {
 
     @Mock
     private TicketRepository ticketRepository;
-    
+
     @Mock
     private TecnicoRepository tecnicoRepository;
-    
+
     @Mock
     private UtilizadorRepository utilizadorRepository;
+
+    @Mock
+    private AuditService auditService;  // ✅ ADICIONADO
 
     @InjectMocks
     private TicketService ticketService;
@@ -68,9 +73,9 @@ class TicketServiceTest {
     void testCreateTicket() {
         when(tecnicoRepository.findAll()).thenReturn(Arrays.asList(tecnico1, tecnico2));
         when(ticketRepository.save(any(Ticket.class))).thenReturn(ticket);
-        
+
         Ticket result = ticketService.createTicket(ticket);
-        
+
         assertNotNull(result);
         assertEquals("ABERTO", result.getEstado());
         verify(ticketRepository, times(1)).save(any(Ticket.class));
@@ -79,9 +84,9 @@ class TicketServiceTest {
     @Test
     void testAtribuirTecnicoMenorCarga() {
         when(tecnicoRepository.findAll()).thenReturn(Arrays.asList(tecnico1, tecnico2));
-        
+
         Ticket result = ticketService.createTicket(ticket);
-        
+
         assertNotNull(result);
         // O técnico com menor carga (tecnico1) deve ser escolhido
         assertEquals(0, tecnico1.getCargaTrabalhoAtual());
@@ -96,12 +101,12 @@ class TicketServiceTest {
         ticketComTecnico.setEstado("ABERTO");
         ticketComTecnico.setTecnico(tecnico1);
         tecnico1.setCargaTrabalhoAtual(1);
-        
+
         when(ticketRepository.findById(1L)).thenReturn(Optional.of(ticketComTecnico));
         when(ticketRepository.save(any(Ticket.class))).thenReturn(ticketComTecnico);
-        
+
         Ticket result = ticketService.updateEstado(1L, "RESOLVIDO");
-        
+
         assertNotNull(result);
         assertEquals("RESOLVIDO", result.getEstado());
     }
@@ -110,9 +115,9 @@ class TicketServiceTest {
     void testFindByEstado() {
         List<Ticket> tickets = Arrays.asList(ticket);
         when(ticketRepository.findByEstado("ABERTO")).thenReturn(tickets);
-        
+
         List<Ticket> result = ticketService.findByEstado("ABERTO");
-        
+
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("ABERTO", result.get(0).getEstado());

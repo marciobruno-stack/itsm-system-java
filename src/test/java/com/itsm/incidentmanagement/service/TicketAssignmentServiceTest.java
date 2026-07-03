@@ -2,6 +2,9 @@ package com.itsm.incidentmanagement.service;
 
 import com.itsm.incidentmanagement.model.entity.*;
 import com.itsm.incidentmanagement.repository.TicketRepository;
+import com.itsm.incidentmanagement.service.AuditService;
+import com.itsm.incidentmanagement.service.CacheService;
+import com.itsm.incidentmanagement.service.TicketAssignmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +25,9 @@ class TicketAssignmentServiceUnitTest {
 
     @Mock
     private TicketRepository ticketRepository;
+
+    @Mock
+    private AuditService auditService;  // ✅ ADICIONADO
 
     @InjectMocks
     private TicketAssignmentService assignmentService;

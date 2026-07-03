@@ -41,6 +41,8 @@ public class AtivoService {
         return ativoRepository.save(existing);
     }
 
+
+
     @Transactional
     public void delete(Long id) {
         ativoRepository.deleteById(id);

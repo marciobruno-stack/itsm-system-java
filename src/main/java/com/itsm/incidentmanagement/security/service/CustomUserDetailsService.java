@@ -14,6 +14,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     public CustomUserDetailsService(UtilizadorRepository utilizadorRepository) {
         this.utilizadorRepository = utilizadorRepository;
+        System.out.println("✅ CustomUserDetailsService inicializado!");
     }
 
     @Override
@@ -28,6 +29,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         System.out.println("✅ Utilizador encontrado: " + username + " | Role: " + utilizador.getRole());
         System.out.println("🔑 Hash da password: " + utilizador.getPasswordHash());
+
+        // ⭐ Forçar remoção de caracteres especiais do hash
+        String cleanHash = utilizador.getPasswordHash().replace("\\", "").trim();
+        utilizador.setPasswordHash(cleanHash);
+        System.out.println("🔑 Hash limpo: " + cleanHash);
 
         return new CustomUserDetails(utilizador);
     }

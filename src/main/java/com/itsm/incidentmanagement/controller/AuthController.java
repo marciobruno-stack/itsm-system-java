@@ -15,6 +15,6 @@ public class AuthController {
     @GetMapping("/logout")
     public String logout() {
         System.out.println("=== Logout ===");
-        return "redirect:/login?logout";
+        return "redirect:/login?logout=true";
     }
 }

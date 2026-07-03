@@ -1,5 +1,6 @@
 package com.itsm.incidentmanagement.utils;
 
+import com.itsm.incidentmanagement.utils.DisponibilidadeUtils;
 import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;

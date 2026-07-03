@@ -72,14 +72,17 @@ public class TicketService {
         return saved;
     }
 
+    @Transactional(readOnly = true)
     public List<Ticket> findAll() {
         return ticketRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public List<Ticket> findByEstado(String estado) {
         return ticketRepository.findByEstado(estado);
     }
 
+    @Transactional(readOnly = true)
     public Ticket findById(Long id) {
         return ticketRepository.findById(id).orElse(null);
     }
@@ -145,10 +148,12 @@ public class TicketService {
         ticketRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
     public List<Ticket> findByTecnicoId(Long tecnicoId) {
         return ticketRepository.findByTecnicoId(tecnicoId);
     }
 
+    @Transactional(readOnly = true)
     public List<Ticket> findByAbertoPorId(Long utilizadorId) {
         return ticketRepository.findByAbertoPorId(utilizadorId);
     }

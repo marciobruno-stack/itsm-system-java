@@ -1,56 +1,184 @@
 ﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Novo Utilizador - ITSM</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITSM - Formulário Utilizador</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial; margin: 20px; background: #f4f4f4; }
-        .header { background: #1a237e; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-        .header a { color: white; margin: 0 10px; text-decoration: none; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 5px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        .btn { background: #1a237e; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
-        .btn-secondary { background: #666; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%); color: white; padding: 20px 0; }
+        .sidebar .brand { text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar .brand h3 { color: #ecf0f1; font-weight: 300; }
+        .sidebar .brand h3 span { color: #3498db; font-weight: 600; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.7); padding: 12px 25px; border-radius: 8px; margin: 5px 10px; transition: all 0.3s; }
+        .sidebar .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar .nav-link.active { background: #3498db; color: white; }
+        .sidebar .nav-link i { margin-right: 10px; width: 20px; text-align: center; }
+        .main-content { padding: 30px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+        .card-header { background: white; border-bottom: 1px solid #eef2f7; padding: 20px 25px; border-radius: 12px 12px 0 0 !important; }
+        .form-label { font-weight: 600; }
+        .required::after { content: " *"; color: #e74c3c; }
+        .alert { border-radius: 10px; border: none; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>📊 ITSM - Gestão de Infraestruturas</h1>
-        <div>
-            <a href="/admin/dashboard">Dashboard</a>
-            <a href="/admin/users">Utilizadores</a>
-            <a href="/admin/technicians">Técnicos</a>
-            <a href="/admin/tickets">Tickets</a>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar">
+            <div class="brand">
+                <h3>ITSM</h3>
+                <small style="color: #bdc3c7;">Gestão de Incidentes</small>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/tickets"><i class="fas fa-ticket-alt"></i> Tickets</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/admin/users"><i class="fas fa-users"></i> Utilizadores</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/technicians"><i class="fas fa-user-cog"></i> Técnicos</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/competencias"><i class="fas fa-tasks"></i> Competências</a></li>
+                <li class="nav-item mt-4"><a class="nav-link" href="/logout" style="color: #e74c3c;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1" th:if="${isEdit}">Editar Utilizador</h2>
+                    <h2 class="mb-1" th:unless="${isEdit}">Novo Utilizador</h2>
+                    <p class="text-muted" th:if="${isEdit}">Atualize as informações do utilizador</p>
+                    <p class="text-muted" th:unless="${isEdit}">Crie um novo utilizador no sistema</p>
+                </div>
+                <div>
+                    <a href="/admin/users" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</a>
+                </div>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Dados do Utilizador</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Formulário para criar novo utilizador -->
+                    <form th:if="${!isEdit}" th:action="@{/admin/users}" method="post" th:object="${user}" class="needs-validation" novalidate>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Username</label>
+                                <input type="text" class="form-control" th:field="*{username}" required>
+                                <div class="invalid-feedback">Username é obrigatório</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Nome</label>
+                                <input type="text" class="form-control" th:field="*{nome}" required>
+                                <div class="invalid-feedback">Nome é obrigatório</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Email</label>
+                                <input type="email" class="form-control" th:field="*{email}" required>
+                                <div class="invalid-feedback">Email válido é obrigatório</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Role</label>
+                                <select class="form-select" th:field="*{role}" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="ADMIN">Administrador</option>
+                                    <option value="TECNICO">Técnico</option>
+                                    <option value="UTILIZADOR">Utilizador</option>
+                                </select>
+                                <div class="invalid-feedback">Role é obrigatória</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" th:field="*{passwordHash}" placeholder="Deixar em branco para usar 'password123'">
+                            <small class="text-muted">A password será encriptada automaticamente</small>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="/admin/users" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
+                        </div>
+                    </form>
+
+                    <!-- Formulário para editar utilizador existente -->
+                    <form th:if="${isEdit}" th:action="'/admin/users/update/' + ${user.id}" method="post" th:object="${user}" class="needs-validation" novalidate>
+                        <!-- ID oculto -->
+                        <input type="hidden" th:field="*{id}" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Username</label>
+                                <input type="text" class="form-control" th:field="*{username}" required>
+                                <div class="invalid-feedback">Username é obrigatório</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Nome</label>
+                                <input type="text" class="form-control" th:field="*{nome}" required>
+                                <div class="invalid-feedback">Nome é obrigatório</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Email</label>
+                                <input type="email" class="form-control" th:field="*{email}" required>
+                                <div class="invalid-feedback">Email válido é obrigatório</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label required">Role</label>
+                                <select class="form-select" th:field="*{role}" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="ADMIN">Administrador</option>
+                                    <option value="TECNICO">Técnico</option>
+                                    <option value="UTILIZADOR">Utilizador</option>
+                                </select>
+                                <div class="invalid-feedback">Role é obrigatória</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nova Password</label>
+                            <input type="password" class="form-control" name="newPassword" placeholder="Deixar em branco para manter a atual">
+                            <small class="text-muted">Preencha apenas se quiser alterar a password</small>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> <strong>ID:</strong> <span th:text="${user.id}"></span> |
+                            <strong>Criado em:</strong> <span th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="/admin/users" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Atualizar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
-    <div class="container">
-        <h2>👤 Novo Utilizador</h2>
-        <div th:if="${error}" class="alert-error" th:text="${error}"></div>
-        <form th:action="@{/admin/users}" method="post" th:object="${user}">
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" th:field="*{username}" required>
-            </div>
-            <div class="form-group">
-                <label>Nome</label>
-                <input type="text" th:field="*{nome}" required>
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" th:field="*{email}" required>
-            </div>
-            <div class="form-group">
-                <label>Role</label>
-                <select th:field="*{role}">
-                    <option value="UTILIZADOR">Utilizador</option>
-                    <option value="TECNICO">Técnico</option>
-                </select>
-            </div>
-            <button type="submit" class="btn">Salvar</button>
-            <a href="/admin/users" class="btn btn-secondary">Cancelar</a>
-        </form>
-    </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function() {
+        'use strict';
+        var forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
 </body>
 </html>

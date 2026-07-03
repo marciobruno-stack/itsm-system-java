@@ -27,7 +27,10 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public String getPassword() {
         String hash = utilizador.getPasswordHash();
-        System.out.println("🔑 Password hash: " + hash);
+        if (hash != null) {
+            hash = hash.replace("\\", "").trim();
+        }
+        System.out.println("🔑 Password hash (limpo): " + hash);
         return hash;
     }
 
@@ -59,6 +62,4 @@ public class CustomUserDetails implements UserDetails {
     public Utilizador getUtilizador() {
         return utilizador;
     }
-
-
 }

@@ -2,6 +2,7 @@ package com.itsm.incidentmanagement.service;
 
 import com.itsm.incidentmanagement.model.entity.Utilizador;
 import com.itsm.incidentmanagement.repository.UtilizadorRepository;
+import com.itsm.incidentmanagement.service.UtilizadorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +38,6 @@ class UtilizadorServiceTest {
         utilizador.setRole("ADMIN");
     }
 
-    // ✅ TESTE 1: Listar utilizadores
     @Test
     void testFindAll() {
         when(utilizadorRepository.findAll()).thenReturn(Arrays.asList(utilizador));
@@ -49,7 +49,6 @@ class UtilizadorServiceTest {
         verify(utilizadorRepository).findAll();
     }
 
-    // ✅ TESTE 2: Buscar utilizador por ID
     @Test
     void testFindById() {
         when(utilizadorRepository.findById(9L)).thenReturn(Optional.of(utilizador));
@@ -60,7 +59,6 @@ class UtilizadorServiceTest {
         assertEquals("admin", found.getUsername());
     }
 
-    // ✅ TESTE 3: Buscar utilizador por username
     @Test
     void testFindByUsername() {
         when(utilizadorRepository.findByUsername("admin")).thenReturn(Optional.of(utilizador));
@@ -71,7 +69,6 @@ class UtilizadorServiceTest {
         assertEquals("Administrador", found.getNome());
     }
 
-    // ✅ TESTE 4: Buscar utilizador por email
     @Test
     void testFindByEmail() {
         when(utilizadorRepository.findByEmail("admin@itsm.com")).thenReturn(Optional.of(utilizador));
@@ -82,7 +79,6 @@ class UtilizadorServiceTest {
         assertEquals("admin", found.getUsername());
     }
 
-    // ✅ TESTE 5: Salvar utilizador
     @Test
     void testSave() {
         when(utilizadorRepository.save(any(Utilizador.class))).thenReturn(utilizador);
@@ -93,9 +89,10 @@ class UtilizadorServiceTest {
         verify(utilizadorRepository).save(any(Utilizador.class));
     }
 
-    // ✅ TESTE 6: Deletar utilizador
     @Test
     void testDelete() {
+        // ✅ CORRIGIDO - Mock do findById para retornar o utilizador
+        when(utilizadorRepository.findById(9L)).thenReturn(Optional.of(utilizador));
         doNothing().when(utilizadorRepository).deleteById(9L);
 
         utilizadorService.delete(9L);

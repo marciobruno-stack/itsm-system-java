@@ -3,8 +3,6 @@ package com.itsm.incidentmanagement.controller;
 import com.itsm.incidentmanagement.model.entity.Utilizador;
 import com.itsm.incidentmanagement.security.service.JwtService;
 import com.itsm.incidentmanagement.service.UtilizadorService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,7 +14,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Autenticação", description = "Endpoints para autenticação e registo")
 public class ApiAuthController {
 
     private final UtilizadorService utilizadorService;
@@ -29,13 +26,17 @@ public class ApiAuthController {
         this.utilizadorService = utilizadorService;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        System.out.println("✅ ApiAuthController inicializado!");
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Autenticar utilizador e obter token JWT")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
         String username = credentials.get("username");
         String password = credentials.get("password");
+
+        System.out.println("=== DEBUG LOGIN ===");
+        System.out.println("Username: " + username);
+        System.out.println("Password: " + password);
 
         if (username == null || password == null) {
             Map<String, Object> error = new HashMap<>();
@@ -45,7 +46,23 @@ public class ApiAuthController {
         }
 
         Utilizador utilizador = utilizadorService.findByUsername(username);
-        if (utilizador == null || !passwordEncoder.matches(password, utilizador.getPasswordHash())) {
+        if (utilizador == null) {
+            System.out.println("❌ Utilizador não encontrado: " + username);
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Erro de autenticação");
+            error.put("message", "Credenciais inválidas");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
+
+        String hashBanco = utilizador.getPasswordHash();
+        System.out.println("🔑 Hash da password no banco: " + hashBanco);
+        System.out.println("🔑 Password fornecida: " + password);
+        System.out.println("🔑 Hash limpo: " + hashBanco.replace("\\", ""));
+
+        boolean matches = passwordEncoder.matches(password, hashBanco.replace("\\", ""));
+        System.out.println("🔑 Password matches: " + matches);
+
+        if (!matches) {
             Map<String, Object> error = new HashMap<>();
             error.put("error", "Erro de autenticação");
             error.put("message", "Credenciais inválidas");
@@ -64,7 +81,6 @@ public class ApiAuthController {
     }
 
     @PostMapping("/register")
-    @Operation(summary = "Registar novo utilizador")
     public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, String> userData) {
         try {
             String username = userData.get("username");
@@ -73,30 +89,21 @@ public class ApiAuthController {
             String email = userData.get("email");
             String role = userData.getOrDefault("role", "UTILIZADOR");
 
-            // Validações
             if (username == null || username.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Username é obrigatório"));
             }
             if (password == null || password.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Password é obrigatória"));
             }
-            if (nome == null || nome.isBlank()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Nome é obrigatório"));
-            }
 
-            // Verificar se já existe
             if (utilizadorService.findByUsername(username) != null) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Username já existe"));
             }
-            if (email != null && !email.isBlank() && utilizadorService.findByEmail(email) != null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Email já existe"));
-            }
 
-            // Criar utilizador
             Utilizador utilizador = new Utilizador();
             utilizador.setUsername(username);
             utilizador.setPasswordHash(passwordEncoder.encode(password));
-            utilizador.setNome(nome);
+            utilizador.setNome(nome != null ? nome : username);
             utilizador.setEmail(email != null ? email : username + "@itsm.com");
             utilizador.setRole(role);
             utilizador.setCreatedAt(LocalDateTime.now());

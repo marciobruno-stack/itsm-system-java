@@ -4,6 +4,8 @@ import com.itsm.incidentmanagement.model.entity.Tecnico;
 import com.itsm.incidentmanagement.model.entity.Utilizador;
 import com.itsm.incidentmanagement.repository.TecnicoRepository;
 import com.itsm.incidentmanagement.repository.UtilizadorRepository;
+import com.itsm.incidentmanagement.service.CacheService;
+import com.itsm.incidentmanagement.service.TecnicoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

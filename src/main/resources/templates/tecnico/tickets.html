@@ -2,170 +2,134 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Gestão de Tickets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITSM - Meus Tickets</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #f8f9fa; }
-        .card { border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .status-badge { font-size: 12px; padding: 5px 12px; border-radius: 20px; }
-        .priority-high { background-color: #dc3545; color: white; }
-        .priority-medium { background-color: #ffc107; color: #212529; }
-        .priority-low { background-color: #28a745; color: white; }
-        .priority-critical { background-color: #6f42c1; color: white; }
-        .table-hover tbody tr:hover { background-color: rgba(13, 110, 253, 0.05); }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { min-height: 100vh; background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%); color: white; padding: 20px 0; }
+        .sidebar .brand { text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar .brand h3 { color: #ecf0f1; font-weight: 300; }
+        .sidebar .brand h3 span { color: #3498db; font-weight: 600; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.7); padding: 12px 25px; border-radius: 8px; margin: 5px 10px; transition: all 0.3s; }
+        .sidebar .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar .nav-link.active { background: #3498db; color: white; }
+        .sidebar .nav-link i { margin-right: 10px; width: 20px; text-align: center; }
+        .main-content { padding: 30px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+        .card-header { background: white; border-bottom: 1px solid #eef2f7; padding: 20px 25px; border-radius: 12px 12px 0 0 !important; }
+        .table th { border-top: none; color: #6c757d; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .stats-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .stats-card .number { font-size: 2rem; font-weight: 700; color: #2c3e50; }
+        .stats-card .label { color: #6c757d; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stats-card .icon { font-size: 2.5rem; opacity: 0.2; float: right; }
     </style>
 </head>
 <body>
-<nav class="navbar navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/admin/dashboard">
-            <i class="bi bi-arrow-left"></i> Voltar
-        </a>
-        <span class="navbar-text text-white">
-                <i class="bi bi-ticket"></i> Tickets
-                <span class="badge bg-light text-dark ms-2" th:text="${tickets.size()}">0</span>
-            </span>
-        <a href="/utilizador/new-ticket" class="btn btn-success btn-sm">
-            <i class="bi bi-plus-circle"></i> Novo Ticket
-        </a>
-    </div>
-</nav>
 
-<div class="container mt-4">
-    <!-- Filtros -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Estado</label>
-                    <select class="form-select" id="filterEstado" onchange="filterTickets()">
-                        <option value="todos">Todos</option>
-                        <option value="ABERTO">ABERTO</option>
-                        <option value="ATRIBUIDO">ATRIBUIDO</option>
-                        <option value="EM_CURSO">EM_CURSO</option>
-                        <option value="RESOLVIDO">RESOLVIDO</option>
-                        <option value="FECHADO">FECHADO</option>
-                    </select>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar">
+            <div class="brand">
+                <h3>ITSM</h3>
+                <small style="color: #bdc3c7;">Gestão de Incidentes</small>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link" href="/tecnico/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/tecnico/tickets"><i class="fas fa-ticket-alt"></i> Meus Tickets</a></li>
+                <li class="nav-item mt-4"><a class="nav-link" href="/logout" style="color: #e74c3c;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Meus Tickets</h2>
+                    <p class="text-muted">Tickets atribuídos a <strong th:text="${username}">Técnico</strong></p>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Prioridade</label>
-                    <select class="form-select" id="filterPrioridade" onchange="filterTickets()">
-                        <option value="todos">Todas</option>
-                        <option value="BAIXA">BAIXA</option>
-                        <option value="MEDIA">MEDIA</option>
-                        <option value="ALTA">ALTA</option>
-                        <option value="CRITICA">CRITICA</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Pesquisar</label>
-                    <input type="text" class="form-control" id="filterSearch" placeholder="Título..." onkeyup="filterTickets()">
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button class="btn btn-secondary w-100" onclick="resetFilters()">
-                        <i class="bi bi-arrow-counterclockwise"></i> Limpar Filtros
-                    </button>
+                <div>
+                    <a href="/tecnico/dashboard" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</a>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Tabela de Tickets -->
-    <div class="card">
-        <div class="card-header bg-white">
-            <h5 class="mb-0"><i class="bi bi-list-ul"></i> Todos os Tickets</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0" id="ticketTable">
-                    <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Título</th>
-                        <th>Estado</th>
-                        <th>Prioridade</th>
-                        <th>Técnico</th>
-                        <th>Aberto por</th>
-                        <th>Data</th>
-                        <th>Ações</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="t : ${tickets}" class="ticket-row"
-                        th:data-estado="${t.estado}"
-                        th:data-prioridade="${t.prioridade}"
-                        th:data-titulo="${#strings.toLowerCase(t.titulo)}">
-                        <td><strong th:text="${t.id}">1</strong></td>
-                        <td th:text="${t.titulo}">Problema de rede</td>
-                        <td>
-                                    <span class="status-badge"
-                                          th:class="${t.estado == 'ABERTO' ? 'bg-warning text-dark' :
-                                                     t.estado == 'ATRIBUIDO' ? 'bg-info text-white' :
-                                                     t.estado == 'EM_CURSO' ? 'bg-primary text-white' :
-                                                     t.estado == 'RESOLVIDO' ? 'bg-success text-white' : 'bg-secondary text-white'}"
-                                          th:text="${t.estado}">ABERTO</span>
-                        </td>
-                        <td>
-                                    <span class="badge"
-                                          th:class="${t.prioridade == 'CRITICA' ? 'priority-critical' :
-                                                     t.prioridade == 'ALTA' ? 'priority-high' :
-                                                     t.prioridade == 'MEDIA' ? 'priority-medium' : 'priority-low'}"
-                                          th:text="${t.prioridade}">ALTA</span>
-                        </td>
-                        <td th:text="${t.tecnico != null ? t.tecnico.utilizador.nome : '-'}">João</td>
-                        <td th:text="${t.abertoPor.nome}">Carlos</td>
-                        <td th:text="${#temporals.format(t.dataAbertura, 'dd/MM/yyyy')}">01/01/2024</td>
-                        <td>
-                            <a class="btn btn-sm btn-outline-primary" th:href="'/admin/tickets/' + ${t.id}">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            <a class="btn btn-sm btn-outline-danger" th:href="'/admin/tickets/delete/' + ${t.id}"
-                               onclick="return confirm('Confirmar remoção?')">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="icon"><i class="fas fa-ticket-alt"></i></div>
+                        <div class="number" th:text="${totalTickets}">0</div>
+                        <div class="label">Total</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="icon"><i class="fas fa-clock"></i></div>
+                        <div class="number" th:text="${abertos}">0</div>
+                        <div class="label">Em Aberto</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="number" th:text="${resolvidos}">0</div>
+                        <div class="label">Resolvidos</div>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="card-footer bg-white">
-            <small class="text-muted">
-                <span th:text="${tickets.size()}">0</span> tickets no total
-            </small>
+
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">Tickets Atribuídos</h5></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                            <tr>
+                                <th>ID</th><th>Título</th><th>Estado</th><th>Prioridade</th><th>Aberto Por</th><th>Data</th><th>Ações</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${tickets == null or tickets.isEmpty()}">
+                                <td colspan="7" class="text-center py-4">
+                                    <i class="fas fa-inbox fa-2x text-muted mb-2 d-block"></i>
+                                    <span class="text-muted">Nenhum ticket atribuído</span>
+                                </td>
+                            </tr>
+                            <tr th:each="ticket : ${tickets}">
+                                <td><span class="badge bg-secondary" th:text="${ticket.id}"></span></td>
+                                <td th:text="${ticket.titulo}"></td>
+                                <td>
+                                    <span class="badge" th:class="${ticket.estado == 'ABERTO' ? 'bg-warning' : ticket.estado == 'ATRIBUIDO' ? 'bg-info' : ticket.estado == 'EM_CURSO' ? 'bg-primary' : ticket.estado == 'RESOLVIDO' ? 'bg-success' : 'bg-secondary'}" th:text="${ticket.estado}"></span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:class="${ticket.prioridade == 'CRITICA' ? 'bg-danger' : ticket.prioridade == 'ALTA' ? 'bg-warning' : ticket.prioridade == 'MEDIA' ? 'bg-info' : 'bg-secondary'}" th:text="${ticket.prioridade}"></span>
+                                </td>
+                                <td th:text="${ticket.abertoPor != null ? ticket.abertoPor.nome : 'N/A'}"></td>
+                                <td th:text="${#temporals.format(ticket.dataAbertura, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td>
+                                    <form th:action="@{/tecnico/tickets/update-state}" method="post" class="d-inline">
+                                        <input type="hidden" name="ticketId" th:value="${ticket.id}">
+                                        <select name="estado" class="form-select form-select-sm d-inline-block w-auto">
+                                            <option value="ABERTO" th:selected="${ticket.estado == 'ABERTO'}">ABERTO</option>
+                                            <option value="ATRIBUIDO" th:selected="${ticket.estado == 'ATRIBUIDO'}">ATRIBUIDO</option>
+                                            <option value="EM_CURSO" th:selected="${ticket.estado == 'EM_CURSO'}">EM CURSO</option>
+                                            <option value="RESOLVIDO" th:selected="${ticket.estado == 'RESOLVIDO'}">RESOLVIDO</option>
+                                            <option value="FECHADO" th:selected="${ticket.estado == 'FECHADO'}">FECHADO</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-sync"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
-<script>
-    function filterTickets() {
-        const estado = document.getElementById('filterEstado').value;
-        const prioridade = document.getElementById('filterPrioridade').value;
-        const search = document.getElementById('filterSearch').value.toLowerCase();
-
-        const rows = document.querySelectorAll('.ticket-row');
-        rows.forEach(row => {
-            const rowEstado = row.dataset.estado;
-            const rowPrioridade = row.dataset.prioridade;
-            const rowTitulo = row.dataset.titulo;
-
-            let show = true;
-            if (estado !== 'todos' && rowEstado !== estado) show = false;
-            if (prioridade !== 'todos' && rowPrioridade !== prioridade) show = false;
-            if (search && !rowTitulo.includes(search)) show = false;
-
-            row.style.display = show ? '' : 'none';
-        });
-    }
-
-    function resetFilters() {
-        document.getElementById('filterEstado').value = 'todos';
-        document.getElementById('filterPrioridade').value = 'todos';
-        document.getElementById('filterSearch').value = '';
-        filterTickets();
-    }
-</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

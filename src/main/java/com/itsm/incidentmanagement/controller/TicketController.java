@@ -78,6 +78,7 @@ public class TicketController {
         return ResponseEntity.ok(updated);
     }
 
+    // ⭐ CORRIGIDO - Método delete com tratamento de exceções
     @DeleteMapping("/{id}")
     @Operation(summary = "Remover ticket")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
@@ -85,11 +86,15 @@ public class TicketController {
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
-        ticketService.delete(id);
-        return ResponseEntity.noContent().build();
+        try {
+            ticketService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
-    // ⭐ Método para converter Ticket para TicketDTO
+    // Método para converter Ticket para TicketDTO
     private TicketDTO convertToDTO(Ticket ticket) {
         TicketDTO dto = new TicketDTO();
         dto.setId(ticket.getId());

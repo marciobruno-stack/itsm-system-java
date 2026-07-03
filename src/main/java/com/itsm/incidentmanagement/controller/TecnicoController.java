@@ -65,6 +65,7 @@ public class TecnicoController {
         }
     }
 
+    // ⭐ CORRIGIDO - Método delete com tratamento de exceções
     @DeleteMapping("/{id}")
     @Operation(summary = "Remover técnico")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

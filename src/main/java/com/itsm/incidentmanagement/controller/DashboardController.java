@@ -1,17 +1,16 @@
 package com.itsm.incidentmanagement.controller;
 
-import com.itsm.incidentmanagement.model.entity.Tecnico;
-import com.itsm.incidentmanagement.model.entity.Ticket;
-import com.itsm.incidentmanagement.model.entity.Utilizador;
-import com.itsm.incidentmanagement.service.TecnicoService;
-import com.itsm.incidentmanagement.service.TicketService;
-import com.itsm.incidentmanagement.service.UtilizadorService;
+import com.itsm.incidentmanagement.model.entity.*;
+import com.itsm.incidentmanagement.service.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -20,93 +19,69 @@ public class DashboardController {
     private final TicketService ticketService;
     private final TecnicoService tecnicoService;
     private final UtilizadorService utilizadorService;
+    private final AtivoService ativoService;
 
     public DashboardController(TicketService ticketService,
                                TecnicoService tecnicoService,
-                               UtilizadorService utilizadorService) {
+                               UtilizadorService utilizadorService,
+                               AtivoService ativoService) {
         this.ticketService = ticketService;
         this.tecnicoService = tecnicoService;
         this.utilizadorService = utilizadorService;
+        this.ativoService = ativoService;
     }
 
-    // ==================== DASHBOARD UTILIZADOR ====================
+    // ==================== ADMIN DASHBOARD ====================
 
-    @GetMapping("/utilizador/dashboard")
-    public String utilizadorDashboard(Model model, HttpServletRequest request) {
-        String username = (String) request.getSession().getAttribute("username");
-        if (username == null) return "redirect:/login";
+    @GetMapping("/admin/dashboard")
+    public String adminDashboard(Model model) {
+        String username = getAuthenticatedUsername();
+        model.addAttribute("username", username != null ? username : "Admin");
+        model.addAttribute("role", "ADMIN");
+        model.addAttribute("totalTickets", ticketService.findAll().size());
+        model.addAttribute("ticketsAbertos", ticketService.findByEstado("ABERTO").size());
+        model.addAttribute("totalTecnicos", tecnicoService.findAll().size());
+        model.addAttribute("totalUsers", utilizadorService.findAll().size());
 
-        Utilizador user = utilizadorService.findByUsername(username);
-        model.addAttribute("username", username);
-        model.addAttribute("role", "UTILIZADOR");
-
-        if (user != null) {
-            List<Ticket> meusTickets = ticketService.findByAbertoPorId(user.getId());
-            model.addAttribute("meusTickets", meusTickets);
-            model.addAttribute("totalTickets", meusTickets.size());
+        List<Ticket> recentTickets = ticketService.findAll();
+        if (recentTickets.size() > 5) {
+            recentTickets = recentTickets.subList(0, 5);
         }
-        return "utilizador/dashboard";
+        model.addAttribute("recentTickets", recentTickets);
+        return "admin/dashboard";
     }
 
-    @GetMapping("/utilizador/tickets")
-    public String utilizadorTickets(Model model, HttpServletRequest request) {
-        String username = (String) request.getSession().getAttribute("username");
-        if (username == null) return "redirect:/login";
+    // ==================== ADMIN TICKETS ====================
 
-        Utilizador user = utilizadorService.findByUsername(username);
-        if (user != null) {
-            model.addAttribute("tickets", ticketService.findByAbertoPorId(user.getId()));
-        }
-        model.addAttribute("username", username);
-        return "utilizador/tickets";
+    @GetMapping("/admin/tickets")
+    public String adminTickets(Model model) {
+        String username = getAuthenticatedUsername();
+        List<Ticket> allTickets = ticketService.findAll();
+
+        model.addAttribute("username", username != null ? username : "Admin");
+        model.addAttribute("tickets", allTickets);
+        model.addAttribute("totalTickets", allTickets.size());
+        model.addAttribute("abertos", ticketService.findByEstado("ABERTO").size());
+        model.addAttribute("emCurso", ticketService.findByEstado("EM_CURSO").size());
+        model.addAttribute("resolvidos", ticketService.findByEstado("RESOLVIDO").size());
+
+        return "admin/tickets";
     }
 
-    @GetMapping("/utilizador/new-ticket")
-    public String newTicketForm(Model model, HttpServletRequest request) {
-        String username = (String) request.getSession().getAttribute("username");
-        if (username == null) return "redirect:/login";
-
-        model.addAttribute("ticket", new Ticket());
-        model.addAttribute("tecnicos", tecnicoService.findAll());
-        model.addAttribute("ativos", null);
-        model.addAttribute("username", username);
-        return "utilizador/new-ticket";
-    }
-
-    @PostMapping("/utilizador/tickets")
-    public String createTicket(@ModelAttribute Ticket ticket,
-                               @RequestParam Long abertoPorId,
-                               @RequestParam(required = false) Long tecnicoId,
-                               @RequestParam(required = false) Long ativoId,
-                               RedirectAttributes redirect) {
-        try {
-            Utilizador user = utilizadorService.findById(abertoPorId);
-            if (user == null) {
-                redirect.addFlashAttribute("error", "Utilizador não encontrado!");
-                return "redirect:/utilizador/new-ticket";
-            }
-            ticket.setAbertoPor(user);
-            ticketService.createTicket(ticket);
-            redirect.addFlashAttribute("success", "Ticket criado com sucesso!");
-            return "redirect:/utilizador/tickets";
-        } catch (Exception e) {
-            redirect.addFlashAttribute("error", "Erro: " + e.getMessage());
-            return "redirect:/utilizador/new-ticket";
-        }
-    }
-
-    // ==================== DASHBOARD TECNICO ====================
+    // ==================== TECNICO DASHBOARD ====================
 
     @GetMapping("/tecnico/dashboard")
-    public String tecnicoDashboard(Model model, HttpServletRequest request) {
-        String username = (String) request.getSession().getAttribute("username");
+    public String tecnicoDashboard(Model model) {
+        String username = getAuthenticatedUsername();
         if (username == null) return "redirect:/login";
 
         Utilizador user = utilizadorService.findByUsername(username);
-        Tecnico tecnico = tecnicoService.findByUtilizadorId(user.getId());
+        if (user == null) return "redirect:/login";
 
+        Tecnico tecnico = tecnicoService.findByUtilizadorId(user.getId());
         model.addAttribute("username", username);
         model.addAttribute("role", "TECNICO");
+
         if (tecnico != null) {
             List<Ticket> meusTickets = ticketService.findByTecnicoId(tecnico.getId());
             model.addAttribute("meusTickets", meusTickets);
@@ -116,23 +91,190 @@ public class DashboardController {
         return "tecnico/dashboard";
     }
 
+    // ==================== TECNICO TICKETS ====================
+
     @GetMapping("/tecnico/tickets")
-    public String tecnicoTickets(Model model, HttpServletRequest request) {
-        String username = (String) request.getSession().getAttribute("username");
+    public String tecnicoTickets(Model model) {
+        System.out.println("📊 A carregar /tecnico/tickets");
+
+        String username = getAuthenticatedUsername();
         if (username == null) return "redirect:/login";
 
         Utilizador user = utilizadorService.findByUsername(username);
+        if (user == null) return "redirect:/login";
+
         Tecnico tecnico = tecnicoService.findByUtilizadorId(user.getId());
-        if (tecnico != null) {
-            model.addAttribute("tickets", ticketService.findByTecnicoId(tecnico.getId()));
-        }
         model.addAttribute("username", username);
+        model.addAttribute("role", "TECNICO");
+
+        if (tecnico != null) {
+            List<Ticket> tickets = ticketService.findByTecnicoId(tecnico.getId());
+            model.addAttribute("tickets", tickets);
+            model.addAttribute("totalTickets", tickets.size());
+            System.out.println("✅ Tickets encontrados: " + tickets.size());
+        } else {
+            model.addAttribute("tickets", new ArrayList<>());
+            model.addAttribute("totalTickets", 0);
+            System.out.println("⚠️ Técnico não encontrado para: " + username);
+        }
+
         return "tecnico/tickets";
     }
 
-    @PostMapping("/tecnico/tickets/{id}/update-state")
-    public String updateTicketState(@PathVariable Long id, @RequestParam String estado) {
-        ticketService.updateEstado(id, estado);
-        return "redirect:/tecnico/tickets";
+    // ==================== TECNICO ATUALIZAR ESTADO ====================
+
+    @PostMapping("/tecnico/tickets/update-state")
+    public String updateTicketState(@RequestParam Long ticketId,
+                                    @RequestParam String estado,
+                                    RedirectAttributes redirect) {
+        try {
+            System.out.println("📝 Atualizando ticket " + ticketId + " para estado: " + estado);
+            ticketService.updateEstado(ticketId, estado);
+            redirect.addFlashAttribute("success", "Estado atualizado com sucesso!");
+        } catch (Exception e) {
+            System.err.println("❌ Erro ao atualizar: " + e.getMessage());
+            redirect.addFlashAttribute("error", "Erro: " + e.getMessage());
+        }
+        return "redirect:/tecnico/dashboard";
+    }
+
+    // ==================== UTILIZADOR DASHBOARD ====================
+
+    @GetMapping("/utilizador/dashboard")
+    public String utilizadorDashboard(Model model) {
+        String username = getAuthenticatedUsername();
+        if (username == null) return "redirect:/login";
+
+        Utilizador user = utilizadorService.findByUsername(username);
+        if (user == null) return "redirect:/login";
+
+        model.addAttribute("username", username);
+        model.addAttribute("role", "UTILIZADOR");
+
+        List<Ticket> meusTickets = ticketService.findByAbertoPorId(user.getId());
+        model.addAttribute("meusTickets", meusTickets);
+        model.addAttribute("totalTickets", meusTickets.size());
+
+        long abertos = meusTickets.stream()
+                .filter(t -> "ABERTO".equals(t.getEstado()) || "ATRIBUIDO".equals(t.getEstado()))
+                .count();
+        long emAndamento = meusTickets.stream()
+                .filter(t -> "EM_CURSO".equals(t.getEstado()))
+                .count();
+
+        model.addAttribute("ticketsAbertos", abertos);
+        model.addAttribute("ticketsEmAndamento", emAndamento);
+        return "utilizador/dashboard";
+    }
+
+    // ==================== UTILIZADOR - NOVO TICKET ====================
+
+    @GetMapping("/utilizador/new-ticket")
+    public String newTicketForm(Model model) {
+        String username = getAuthenticatedUsername();
+        if (username == null) return "redirect:/login";
+
+        System.out.println("📝 A carregar formulário de novo ticket para: " + username);
+
+        model.addAttribute("username", username);
+        model.addAttribute("ticket", new Ticket());
+        model.addAttribute("tecnicos", tecnicoService.findAll());
+        model.addAttribute("ativos", ativoService.findAll());
+        return "utilizador/new-ticket";
+    }
+
+    // ==================== UTILIZADOR - CRIAR TICKET ====================
+
+    @PostMapping("/utilizador/tickets")
+    public String createTicketByUser(@ModelAttribute Ticket ticket,
+                                     @RequestParam(required = false) Long tecnicoId,
+                                     @RequestParam(required = false) Long ativoId,
+                                     RedirectAttributes redirect) {
+        try {
+            String username = getAuthenticatedUsername();
+            if (username == null) return "redirect:/login";
+
+            System.out.println("📝 A criar ticket por utilizador: " + username);
+
+            Utilizador user = utilizadorService.findByUsername(username);
+            if (user == null) {
+                redirect.addFlashAttribute("error", "Utilizador não encontrado!");
+                return "redirect:/utilizador/new-ticket";
+            }
+
+            // Definir valores
+            ticket.setAbertoPor(user);
+            ticket.setEstado("ABERTO");
+
+            if (ticket.getTipo() == null || ticket.getTipo().isEmpty()) {
+                ticket.setTipo("INCIDENTE");
+            }
+
+            if (tecnicoId != null && tecnicoId > 0) {
+                Tecnico tecnico = tecnicoService.findById(tecnicoId);
+                ticket.setTecnico(tecnico);
+            }
+
+            if (ativoId != null && ativoId > 0) {
+                Ativo ativo = ativoService.findById(ativoId);
+                ticket.setAtivo(ativo);
+            }
+
+            // Criar o ticket (com atribuição automática)
+            Ticket created = ticketService.createTicket(ticket);
+
+            System.out.println("✅ Ticket #" + created.getId() + " criado com sucesso!");
+            redirect.addFlashAttribute("success", "Ticket #" + created.getId() + " criado com sucesso!");
+            return "redirect:/utilizador/tickets";
+
+        } catch (Exception e) {
+            System.err.println("❌ Erro ao criar ticket: " + e.getMessage());
+            e.printStackTrace();
+            redirect.addFlashAttribute("error", "Erro ao criar ticket: " + e.getMessage());
+            return "redirect:/utilizador/new-ticket";
+        }
+    }
+
+    // ==================== UTILIZADOR - MEUS TICKETS ====================
+
+    @GetMapping("/utilizador/tickets")
+    public String utilizadorTickets(Model model) {
+        String username = getAuthenticatedUsername();
+        if (username == null) return "redirect:/login";
+
+        System.out.println("📊 A carregar tickets do utilizador: " + username);
+
+        Utilizador user = utilizadorService.findByUsername(username);
+        if (user == null) return "redirect:/login";
+
+        List<Ticket> meusTickets = ticketService.findByAbertoPorId(user.getId());
+
+        model.addAttribute("username", username);
+        model.addAttribute("role", "UTILIZADOR");
+        model.addAttribute("tickets", meusTickets);
+        model.addAttribute("totalTickets", meusTickets.size());
+
+        long abertos = meusTickets.stream()
+                .filter(t -> "ABERTO".equals(t.getEstado()) || "ATRIBUIDO".equals(t.getEstado()))
+                .count();
+        long emAndamento = meusTickets.stream()
+                .filter(t -> "EM_CURSO".equals(t.getEstado()))
+                .count();
+
+        model.addAttribute("ticketsAbertos", abertos);
+        model.addAttribute("ticketsEmAndamento", emAndamento);
+
+        System.out.println("✅ Total de tickets: " + meusTickets.size());
+        return "utilizador/tickets";
+    }
+
+    // ==================== MÉTODO AUXILIAR ====================
+
+    private String getAuthenticatedUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            return auth.getName();
+        }
+        return null;
     }
 }

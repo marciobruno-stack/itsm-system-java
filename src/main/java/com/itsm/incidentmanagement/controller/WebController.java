@@ -2,12 +2,11 @@ package com.itsm.incidentmanagement.controller;
 
 import com.itsm.incidentmanagement.model.entity.*;
 import com.itsm.incidentmanagement.service.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.List;
 
 @Controller
 public class WebController {
@@ -16,45 +15,34 @@ public class WebController {
     private final TecnicoService tecnicoService;
     private final UtilizadorService utilizadorService;
     private final CompetenciaService competenciaService;
+    private final PasswordEncoder passwordEncoder;
 
     public WebController(TicketService ticketService,
                          TecnicoService tecnicoService,
                          UtilizadorService utilizadorService,
-                         CompetenciaService competenciaService) {
+                         CompetenciaService competenciaService,
+                         PasswordEncoder passwordEncoder) {
         this.ticketService = ticketService;
         this.tecnicoService = tecnicoService;
         this.utilizadorService = utilizadorService;
         this.competenciaService = competenciaService;
+        this.passwordEncoder = passwordEncoder;
         System.out.println("✅ WebController carregado com sucesso!");
     }
 
+    // ==================== HOME ====================
     @GetMapping("/")
     public String home() {
-        return "redirect:/admin/dashboard";
+        return "redirect:/login";
     }
 
-    @GetMapping("/admin/dashboard")
-    public String adminDashboard(Model model) {
-        System.out.println("📊 A carregar dashboard admin...");
-
-        model.addAttribute("username", "Admin");
-        model.addAttribute("role", "ADMIN");
-        model.addAttribute("totalTickets", ticketService.findAll().size());
-        model.addAttribute("ticketsAbertos", ticketService.findByEstado("ABERTO").size());
-        model.addAttribute("totalTecnicos", tecnicoService.findAll().size());
-        model.addAttribute("totalUsers", utilizadorService.findAll().size());
-        model.addAttribute("totalCompetencias", competenciaService.findAll().size());
-
-        List<Ticket> recentTickets = ticketService.findAll();
-        if (recentTickets.size() > 5) {
-            recentTickets = recentTickets.subList(0, 5);
-        }
-        model.addAttribute("recentTickets", recentTickets);
-
-        return "admin/dashboard";
-    }
+    // ==================== ⚠️ REMOVER ESTES MÉTODOS (já existem no DashboardController) ====================
+    // ❌ REMOVER: @GetMapping("/admin/dashboard")
+    // ❌ REMOVER: @GetMapping("/admin/tickets")
+    // =====================================================================================
 
     // ==================== UTILIZADORES ====================
+
     @GetMapping("/admin/users")
     public String listUsers(Model model) {
         model.addAttribute("users", utilizadorService.findAll());
@@ -64,29 +52,80 @@ public class WebController {
     @GetMapping("/admin/users/new")
     public String newUserForm(Model model) {
         model.addAttribute("user", new Utilizador());
+        model.addAttribute("isEdit", false);
+        return "admin/user-form";
+    }
+
+    @GetMapping("/admin/users/edit/{id}")
+    public String editUserForm(@PathVariable Long id, Model model) {
+        Utilizador user = utilizadorService.findById(id);
+        if (user == null) {
+            model.addAttribute("error", "Utilizador não encontrado!");
+            return "redirect:/admin/users";
+        }
+        model.addAttribute("user", user);
+        model.addAttribute("isEdit", true);
         return "admin/user-form";
     }
 
     @PostMapping("/admin/users")
     public String createUser(@ModelAttribute Utilizador user, RedirectAttributes redirect) {
         try {
-            user.setPasswordHash("$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG");
+            if (user.getPasswordHash() == null || user.getPasswordHash().isEmpty()) {
+                user.setPasswordHash(passwordEncoder.encode("password123"));
+            } else {
+                user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
+            }
             utilizadorService.save(user);
             redirect.addFlashAttribute("success", "Utilizador criado com sucesso!");
         } catch (Exception e) {
-            redirect.addFlashAttribute("error", "Erro: " + e.getMessage());
+            redirect.addFlashAttribute("error", "Erro ao criar utilizador: " + e.getMessage());
+        }
+        return "redirect:/admin/users";
+    }
+
+    @PostMapping("/admin/users/update/{id}")
+    public String updateUser(@PathVariable Long id,
+                             @ModelAttribute Utilizador user,
+                             @RequestParam(required = false) String newPassword,
+                             RedirectAttributes redirect) {
+        try {
+            Utilizador existing = utilizadorService.findById(id);
+            if (existing == null) {
+                redirect.addFlashAttribute("error", "Utilizador não encontrado!");
+                return "redirect:/admin/users";
+            }
+
+            existing.setUsername(user.getUsername());
+            existing.setNome(user.getNome());
+            existing.setEmail(user.getEmail());
+            existing.setRole(user.getRole());
+
+            if (newPassword != null && !newPassword.isEmpty()) {
+                existing.setPasswordHash(passwordEncoder.encode(newPassword));
+            }
+
+            utilizadorService.save(existing);
+            redirect.addFlashAttribute("success", "Utilizador atualizado com sucesso!");
+        } catch (Exception e) {
+            redirect.addFlashAttribute("error", "Erro ao atualizar utilizador: " + e.getMessage());
         }
         return "redirect:/admin/users";
     }
 
     @GetMapping("/admin/users/delete/{id}")
     public String deleteUser(@PathVariable Long id, RedirectAttributes redirect) {
-        utilizadorService.delete(id);
-        redirect.addFlashAttribute("success", "Utilizador removido!");
+        try {
+            utilizadorService.delete(id);
+            redirect.addFlashAttribute("success", "Utilizador removido com sucesso!");
+        } catch (Exception e) {
+            redirect.addFlashAttribute("error", "Erro ao remover utilizador: " + e.getMessage());
+        }
         return "redirect:/admin/users";
     }
 
     // ==================== TÉCNICOS ====================
+
     @GetMapping("/admin/technicians")
     public String listTechnicians(Model model) {
         model.addAttribute("technicians", tecnicoService.findAll());
@@ -116,23 +155,69 @@ public class WebController {
             tecnicoService.create(tecnico);
             redirect.addFlashAttribute("success", "Técnico criado com sucesso!");
         } catch (Exception e) {
-            redirect.addFlashAttribute("error", "Erro: " + e.getMessage());
+            redirect.addFlashAttribute("error", "Erro ao criar técnico: " + e.getMessage());
         }
         return "redirect:/admin/technicians";
     }
 
     @GetMapping("/admin/technicians/delete/{id}")
     public String deleteTechnician(@PathVariable Long id, RedirectAttributes redirect) {
-        tecnicoService.delete(id);
-        redirect.addFlashAttribute("success", "Técnico removido!");
+        try {
+            tecnicoService.delete(id);
+            redirect.addFlashAttribute("success", "Técnico removido com sucesso!");
+        } catch (Exception e) {
+            redirect.addFlashAttribute("error", "Erro ao remover técnico: " + e.getMessage());
+        }
         return "redirect:/admin/technicians";
     }
 
-    // ==================== TICKETS ====================
-    @GetMapping("/admin/tickets")
-    public String listTickets(Model model) {
-        model.addAttribute("tickets", ticketService.findAll());
-        return "admin/tickets";
+    // ==================== TICKETS (CRUD) ====================
+
+    @GetMapping("/admin/tickets/edit/{id}")
+    public String editTicketForm(@PathVariable Long id, Model model) {
+        Ticket ticket = ticketService.findById(id);
+        if (ticket == null) {
+            model.addAttribute("error", "Ticket não encontrado!");
+            return "redirect:/admin/tickets";
+        }
+        model.addAttribute("ticket", ticket);
+        model.addAttribute("users", utilizadorService.findAll());
+        model.addAttribute("tecnicos", tecnicoService.findAll());
+        return "admin/ticket-edit-form";
+    }
+
+    @PostMapping("/admin/tickets/edit/{id}")
+    public String updateTicket(@PathVariable Long id,
+                               @ModelAttribute Ticket ticket,
+                               @RequestParam(required = false) Long tecnicoId,
+                               RedirectAttributes redirect) {
+        try {
+            Ticket existing = ticketService.findById(id);
+            if (existing == null) {
+                redirect.addFlashAttribute("error", "Ticket não encontrado!");
+                return "redirect:/admin/tickets";
+            }
+
+            existing.setTitulo(ticket.getTitulo());
+            existing.setDescricao(ticket.getDescricao());
+            existing.setPrioridade(ticket.getPrioridade());
+            existing.setTipo(ticket.getTipo());
+
+            if (tecnicoId != null && tecnicoId > 0) {
+                Tecnico tecnico = tecnicoService.findById(tecnicoId);
+                if (tecnico != null) {
+                    existing.setTecnico(tecnico);
+                }
+            } else {
+                existing.setTecnico(null);
+            }
+
+            ticketService.update(id, existing);
+            redirect.addFlashAttribute("success", "Ticket #" + id + " atualizado com sucesso!");
+        } catch (Exception e) {
+            redirect.addFlashAttribute("error", "Erro ao atualizar ticket: " + e.getMessage());
+        }
+        return "redirect:/admin/tickets";
     }
 
     @GetMapping("/admin/tickets/new")
@@ -149,11 +234,6 @@ public class WebController {
                                @RequestParam(required = false) Long tecnicoId,
                                RedirectAttributes redirect) {
         try {
-            System.out.println("📝 Criando ticket...");
-            System.out.println("Título: " + ticket.getTitulo());
-            System.out.println("Descrição: " + ticket.getDescricao());
-            System.out.println("Prioridade: " + ticket.getPrioridade());
-
             Utilizador user = utilizadorService.findById(abertoPorId);
             if (user == null) {
                 redirect.addFlashAttribute("error", "Utilizador não encontrado!");
@@ -165,22 +245,17 @@ public class WebController {
 
             if (ticket.getTipo() == null || ticket.getTipo().isEmpty()) {
                 ticket.setTipo("INCIDENTE");
-                System.out.println("⚠️ Tipo definido como INCIDENTE (padrão)");
             }
 
             if (tecnicoId != null && tecnicoId > 0) {
                 Tecnico tecnico = tecnicoService.findById(tecnicoId);
                 ticket.setTecnico(tecnico);
-                System.out.println("Técnico associado: " + tecnico.getId());
             }
 
             ticketService.createTicket(ticket);
-            System.out.println("✅ Ticket criado com sucesso! ID: " + ticket.getId());
             redirect.addFlashAttribute("success", "Ticket criado com sucesso!");
         } catch (Exception e) {
-            System.err.println("❌ Erro ao criar ticket: " + e.getMessage());
-            e.printStackTrace();
-            redirect.addFlashAttribute("error", "Erro: " + e.getMessage());
+            redirect.addFlashAttribute("error", "Erro ao criar ticket: " + e.getMessage());
         }
         return "redirect:/admin/tickets";
     }
@@ -189,17 +264,21 @@ public class WebController {
     public String updateTicketState(@PathVariable Long id, @RequestParam String estado, RedirectAttributes redirect) {
         try {
             ticketService.updateEstado(id, estado);
-            redirect.addFlashAttribute("success", "Estado atualizado!");
+            redirect.addFlashAttribute("success", "Estado atualizado com sucesso!");
         } catch (Exception e) {
-            redirect.addFlashAttribute("error", "Erro: " + e.getMessage());
+            redirect.addFlashAttribute("error", "Erro ao atualizar estado: " + e.getMessage());
         }
         return "redirect:/admin/tickets";
     }
 
     @GetMapping("/admin/tickets/delete/{id}")
     public String deleteTicket(@PathVariable Long id, RedirectAttributes redirect) {
-        ticketService.delete(id);
-        redirect.addFlashAttribute("success", "Ticket removido!");
+        try {
+            ticketService.delete(id);
+            redirect.addFlashAttribute("success", "Ticket removido com sucesso!");
+        } catch (Exception e) {
+            redirect.addFlashAttribute("error", "Erro ao remover ticket: " + e.getMessage());
+        }
         return "redirect:/admin/tickets";
     }
 }

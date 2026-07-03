@@ -58,10 +58,15 @@ public class AtivoController {
         return ResponseEntity.ok(updated);
     }
 
+    // ⭐ CORRIGIDO - Método delete com tratamento de exceções
     @DeleteMapping("/{id}")
     @Operation(summary = "Remover ativo")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        ativoService.delete(id);
-        return ResponseEntity.noContent().build();
+        try {
+            ativoService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

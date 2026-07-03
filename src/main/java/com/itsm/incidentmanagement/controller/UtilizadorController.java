@@ -59,6 +59,7 @@ public class UtilizadorController {
         return ResponseEntity.ok(updated);
     }
 
+    // ⭐ CORRIGIDO - Método delete com tratamento de exceções
     @DeleteMapping("/{id}")
     @Operation(summary = "Remover utilizador")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
@@ -66,9 +67,11 @@ public class UtilizadorController {
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
-        // Nota: Para remover, precisamos de um método delete no service
-        // utilizadorService.delete(id);
-        return ResponseEntity.noContent().build();
+        try {
+            utilizadorService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
-
 }
