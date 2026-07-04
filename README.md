@@ -63,7 +63,6 @@ Ecrã de Login (exemplo):
 
 ![Login Screenshot](docs/images/screenshot-login.svg)
 
-> Se preferir PNG em vez de SVG, posso gerar versões PNG e adicionar ao repositório.
 
 ## Configuração rápida
 
