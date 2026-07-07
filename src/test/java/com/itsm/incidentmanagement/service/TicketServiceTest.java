@@ -2,8 +2,6 @@ package com.itsm.incidentmanagement.service;
 
 import com.itsm.incidentmanagement.model.entity.*;
 import com.itsm.incidentmanagement.repository.*;
-import com.itsm.incidentmanagement.service.AuditService;
-import com.itsm.incidentmanagement.service.TicketService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +29,10 @@ class TicketServiceTest {
     private UtilizadorRepository utilizadorRepository;
 
     @Mock
-    private AuditService auditService;  // ✅ ADICIONADO
+    private TicketAssignmentService ticketAssignmentService;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private TicketService ticketService;
@@ -71,7 +72,7 @@ class TicketServiceTest {
 
     @Test
     void testCreateTicket() {
-        when(tecnicoRepository.findAll()).thenReturn(Arrays.asList(tecnico1, tecnico2));
+        when(ticketAssignmentService.assignTechnician(any(Ticket.class))).thenReturn(tecnico1);
         when(ticketRepository.save(any(Ticket.class))).thenReturn(ticket);
 
         Ticket result = ticketService.createTicket(ticket);
@@ -83,13 +84,14 @@ class TicketServiceTest {
 
     @Test
     void testAtribuirTecnicoMenorCarga() {
-        when(tecnicoRepository.findAll()).thenReturn(Arrays.asList(tecnico1, tecnico2));
+        when(ticketAssignmentService.assignTechnician(any(Ticket.class))).thenReturn(tecnico1);
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(ticket);
 
         Ticket result = ticketService.createTicket(ticket);
 
         assertNotNull(result);
-        // O técnico com menor carga (tecnico1) deve ser escolhido
-        assertEquals(0, tecnico1.getCargaTrabalhoAtual());
+        // O técnico com menor carga é incrementado em 1 na criação do ticket
+        assertEquals(1, tecnico1.getCargaTrabalhoAtual());
         assertTrue(tecnico1.getCargaTrabalhoAtual() < tecnico2.getCargaTrabalhoAtual());
     }
 

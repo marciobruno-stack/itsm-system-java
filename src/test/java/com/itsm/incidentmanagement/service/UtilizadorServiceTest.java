@@ -1,8 +1,9 @@
 package com.itsm.incidentmanagement.service;
 
 import com.itsm.incidentmanagement.model.entity.Utilizador;
+import com.itsm.incidentmanagement.repository.TecnicoRepository;
+import com.itsm.incidentmanagement.repository.TicketRepository;
 import com.itsm.incidentmanagement.repository.UtilizadorRepository;
-import com.itsm.incidentmanagement.service.UtilizadorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +24,12 @@ class UtilizadorServiceTest {
 
     @Mock
     private UtilizadorRepository utilizadorRepository;
+
+    @Mock
+    private TecnicoRepository tecnicoRepository;
+
+    @Mock
+    private TicketRepository ticketRepository;
 
     @InjectMocks
     private UtilizadorService utilizadorService;
@@ -91,8 +99,9 @@ class UtilizadorServiceTest {
 
     @Test
     void testDelete() {
-        // ✅ CORRIGIDO - Mock do findById para retornar o utilizador
         when(utilizadorRepository.findById(9L)).thenReturn(Optional.of(utilizador));
+        when(tecnicoRepository.findByUtilizadorId(9L)).thenReturn(Optional.empty());
+        when(ticketRepository.findByAbertoPorId(9L)).thenReturn(Collections.emptyList());
         doNothing().when(utilizadorRepository).deleteById(9L);
 
         utilizadorService.delete(9L);

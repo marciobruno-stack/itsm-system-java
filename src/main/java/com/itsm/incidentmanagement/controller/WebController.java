@@ -2,6 +2,8 @@ package com.itsm.incidentmanagement.controller;
 
 import com.itsm.incidentmanagement.model.entity.*;
 import com.itsm.incidentmanagement.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,6 +12,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class WebController {
+
+    private static final Logger logger = LoggerFactory.getLogger(WebController.class);
 
     private final TicketService ticketService;
     private final TecnicoService tecnicoService;
@@ -27,7 +31,7 @@ public class WebController {
         this.utilizadorService = utilizadorService;
         this.competenciaService = competenciaService;
         this.passwordEncoder = passwordEncoder;
-        System.out.println("✅ WebController carregado com sucesso!");
+        logger.info("WebController carregado com sucesso");
     }
 
     // ==================== HOME ====================
@@ -35,11 +39,6 @@ public class WebController {
     public String home() {
         return "redirect:/login";
     }
-
-    // ==================== ⚠️ REMOVER ESTES MÉTODOS (já existem no DashboardController) ====================
-    // ❌ REMOVER: @GetMapping("/admin/dashboard")
-    // ❌ REMOVER: @GetMapping("/admin/tickets")
-    // =====================================================================================
 
     // ==================== UTILIZADORES ====================
 
@@ -72,10 +71,10 @@ public class WebController {
     public String createUser(@ModelAttribute Utilizador user, RedirectAttributes redirect) {
         try {
             if (user.getPasswordHash() == null || user.getPasswordHash().isEmpty()) {
-                user.setPasswordHash(passwordEncoder.encode("password123"));
-            } else {
-                user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
+                redirect.addFlashAttribute("error", "Password é obrigatória!");
+                return "redirect:/admin/users/new";
             }
+            user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
             utilizadorService.save(user);
             redirect.addFlashAttribute("success", "Utilizador criado com sucesso!");
         } catch (Exception e) {

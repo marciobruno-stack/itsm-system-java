@@ -27,7 +27,7 @@ class TicketAssignmentServiceUnitTest {
     private TicketRepository ticketRepository;
 
     @Mock
-    private AuditService auditService;  // ✅ ADICIONADO
+    private AuditService auditService;
 
     @InjectMocks
     private TicketAssignmentService assignmentService;
@@ -38,6 +38,9 @@ class TicketAssignmentServiceUnitTest {
     @BeforeEach
     void setUp() {
         tecnicos = new ArrayList<>();
+
+        // Disponibilidade completa para todos os dias da semana (evita falhas conforme o dia de execução do teste)
+        String fullAvailability = "{\"segunda\":[\"00:00-23:59\"],\"terca\":[\"00:00-23:59\"],\"quarta\":[\"00:00-23:59\"],\"quinta\":[\"00:00-23:59\"],\"sexta\":[\"00:00-23:59\"],\"sabado\":[\"00:00-23:59\"],\"domingo\":[\"00:00-23:59\"]}";
 
         // Joao Tecnico
         Tecnico joao = new Tecnico();
@@ -51,7 +54,7 @@ class TicketAssignmentServiceUnitTest {
         compsJoao.add(new Competencia("PostgreSQL"));
         compsJoao.add(new Competencia("Servidores"));
         joao.setCompetencias(compsJoao);
-        joao.setDisponibilidade("{\"segunda\":[\"09:00-18:00\"]}");
+        joao.setDisponibilidade(fullAvailability);
         tecnicos.add(joao);
 
         // Maria Tecnico
@@ -66,13 +69,13 @@ class TicketAssignmentServiceUnitTest {
         compsMaria.add(new Competencia("Redes"));
         compsMaria.add(new Competencia("Linux"));
         maria.setCompetencias(compsMaria);
-        maria.setDisponibilidade("{\"segunda\":[\"09:00-18:00\"]}");
+        maria.setDisponibilidade(fullAvailability);
         tecnicos.add(maria);
 
         ticket = new Ticket();
         ticket.setId(1L);
         ticket.setTitulo("Problema de rede");
-        ticket.setDescricao("Acesso à internet intermitente");
+        ticket.setDescricao("Acesso a internet intermitente");
     }
 
     @Test
@@ -89,7 +92,7 @@ class TicketAssignmentServiceUnitTest {
     @Test
     void testAssignTechnician_NoMatchingCompetence() {
         ticket.setTitulo("Problema de impressora");
-        ticket.setDescricao("A impressora não imprime");
+        ticket.setDescricao("A impressora nao imprime");
 
         when(cacheService.getAllTecnicos()).thenReturn(tecnicos);
 

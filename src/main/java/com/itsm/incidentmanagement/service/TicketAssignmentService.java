@@ -4,6 +4,8 @@ import com.itsm.incidentmanagement.model.entity.Tecnico;
 import com.itsm.incidentmanagement.model.entity.Ticket;
 import com.itsm.incidentmanagement.repository.TicketRepository;
 import com.itsm.incidentmanagement.utils.DisponibilidadeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -13,6 +15,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class TicketAssignmentService {
+    private static final Logger logger = LoggerFactory.getLogger(TicketAssignmentService.class);
+
     private final CacheService cacheService;
     private final TicketRepository ticketRepository;
 
@@ -22,63 +26,64 @@ public class TicketAssignmentService {
     }
 
     public Tecnico assignTechnician(Ticket ticket) {
-        System.out.println("========================================");
-        System.out.println("🔍 A atribuir técnico para ticket: " + ticket.getTitulo());
-        System.out.println("========================================");
+        logger.info("========================================");
+        logger.info("A atribuir técnico para ticket: {}", ticket.getTitulo());
+        logger.info("========================================");
 
         // 1. Obter todos os técnicos da cache
         List<Tecnico> tecnicos = cacheService.getAllTecnicos();
-        System.out.println("📋 Total de técnicos na cache: " + tecnicos.size());
+        logger.debug("Total de técnicos na cache: {}", tecnicos.size());
 
         if (tecnicos.isEmpty()) {
-            System.out.println("⚠️ Nenhum técnico encontrado na cache! A recarregar...");
+            logger.debug("Nenhum técnico encontrado na cache! A recarregar...");
             cacheService.loadTecnicos();
             tecnicos = cacheService.getAllTecnicos();
-            System.out.println("📋 Após recarregar: " + tecnicos.size() + " técnicos");
+            logger.debug("Após recarregar: {} técnicos", tecnicos.size());
         }
 
         if (tecnicos.isEmpty()) {
-            System.out.println("❌ Continua sem técnicos! Verificar base de dados.");
+            logger.debug("Continua sem técnicos! Verificar base de dados.");
             return null;
         }
 
         // 2. Extrair palavras-chave
         Set<String> palavrasChave = extrairPalavrasChave(ticket.getTitulo() + " " + ticket.getDescricao());
-        System.out.println("🔑 Palavras-chave extraídas: " + palavrasChave);
+        logger.debug("Palavras-chave extraídas: {}", palavrasChave);
 
         // 3. Mostrar competências de cada técnico (debug)
         tecnicos.forEach(t -> {
             String comps = t.getCompetencias().stream()
                     .map(c -> c.getNome())
                     .collect(Collectors.joining(", "));
-            System.out.println("   👤 " + t.getUtilizador().getNome() +
-                    " | Competências: " + (comps.isEmpty() ? "nenhuma" : comps) +
-                    " | Carga: " + t.getCargaTrabalhoAtual());
+            logger.debug("   {} | Competências: {} | Carga: {}",
+                    t.getUtilizador().getNome(),
+                    comps.isEmpty() ? "nenhuma" : comps,
+                    t.getCargaTrabalhoAtual());
         });
 
         // 4. Filtrar por competências (usando o método melhorado)
         List<Tecnico> qualificados = tecnicos.stream()
                 .filter(t -> temCompetenciaRelevante(t, palavrasChave))
                 .collect(Collectors.toList());
-        System.out.println("✅ Técnicos com competências relevantes: " + qualificados.size());
+        logger.debug("Técnicos com competências relevantes: {}", qualificados.size());
 
         if (qualificados.isEmpty()) {
-            System.out.println("⚠️ Nenhum técnico com competências relevantes!");
+            logger.debug("Nenhum técnico com competências relevantes!");
             return null;
         }
 
         // 5. Filtrar por disponibilidade (agora ativo)
         DayOfWeek hoje = LocalDate.now().getDayOfWeek();
         LocalTime agora = LocalTime.now();
-        System.out.println("📅 Dia atual: " + hoje + " | Hora: " + agora);
+        logger.debug("Dia atual: {} | Hora: {}", hoje, agora);
 
         List<Tecnico> disponiveis = qualificados.stream()
                 .filter(t -> DisponibilidadeUtils.isDisponivel(t.getDisponibilidade(), hoje, agora))
                 .collect(Collectors.toList());
-        System.out.println("📅 Técnicos disponíveis (horário): " + disponiveis.size());
+        logger.debug("Técnicos disponíveis (horário): {}", disponiveis.size());
 
         if (disponiveis.isEmpty()) {
-            System.out.println("⚠️ Nenhum técnico disponível no horário atual!");
+            logger.debug("Nenhum técnico disponível no horário atual!");
             return null;
         }
 
@@ -91,16 +96,16 @@ public class TicketAssignmentService {
         // 7. Escolher o técnico com menor carga
         Tecnico escolhido = heap.poll();
         if (escolhido != null) {
-            System.out.println("✅ Técnico ESCOLHIDO: " + escolhido.getUtilizador().getNome() +
-                    " (carga atual: " + escolhido.getCargaTrabalhoAtual() + ")");
+            logger.info("Técnico ESCOLHIDO: {} (carga atual: {})",
+                    escolhido.getUtilizador().getNome(), escolhido.getCargaTrabalhoAtual());
             escolhido.setCargaTrabalhoAtual(escolhido.getCargaTrabalhoAtual() + 1);
             cacheService.updateTecnico(escolhido);
             ticketRepository.save(ticket);
         } else {
-            System.out.println("❌ Nenhum técnico disponível (heap vazio)!");
+            logger.debug("Nenhum técnico disponível (heap vazio)!");
         }
 
-        System.out.println("========================================");
+        logger.info("========================================");
         return escolhido;
     }
 

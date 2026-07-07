@@ -4,12 +4,16 @@ import com.itsm.incidentmanagement.model.entity.Utilizador;
 import com.itsm.incidentmanagement.repository.UtilizadorRepository;
 import com.itsm.incidentmanagement.repository.TecnicoRepository;
 import com.itsm.incidentmanagement.repository.TicketRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
 public class UtilizadorService {
+    private static final Logger logger = LoggerFactory.getLogger(UtilizadorService.class);
+
     private final UtilizadorRepository utilizadorRepository;
     private final TecnicoRepository tecnicoRepository;
     private final TicketRepository ticketRepository;
@@ -56,7 +60,7 @@ public class UtilizadorService {
         }
     }
 
-    // ⭐ CORRIGIDO - Verifica se o utilizador pode ser removido
+    // ✅ CORRIGIDO - Verifica se o utilizador pode ser removido
     @Transactional
     public void delete(Long id) {
         try {
@@ -78,9 +82,9 @@ public class UtilizadorService {
             }
 
             utilizadorRepository.deleteById(id);
-            System.out.println("✅ Utilizador " + id + " removido com sucesso!");
+            logger.info("Utilizador {} removido com sucesso!", id);
         } catch (Exception e) {
-            System.err.println("❌ Erro ao remover utilizador " + id + ": " + e.getMessage());
+            logger.error("Erro ao remover utilizador {}: {}", id, e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
     }

@@ -1,6 +1,8 @@
 package com.itsm.incidentmanagement.security.service;
 
 import com.itsm.incidentmanagement.model.entity.Utilizador;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,17 +12,19 @@ import java.util.List;
 
 public class CustomUserDetails implements UserDetails {
 
+    private static final Logger logger = LoggerFactory.getLogger(CustomUserDetails.class);
+
     private final Utilizador utilizador;
 
     public CustomUserDetails(Utilizador utilizador) {
         this.utilizador = utilizador;
-        System.out.println("🔐 CustomUserDetails criado para: " + utilizador.getUsername());
+        logger.debug("CustomUserDetails criado para: {}", utilizador.getUsername());
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         String role = "ROLE_" + utilizador.getRole();
-        System.out.println("📋 GrantedAuthority: " + role);
+        logger.debug("GrantedAuthority: {}", role);
         return List.of(new SimpleGrantedAuthority(role));
     }
 
@@ -30,7 +34,7 @@ public class CustomUserDetails implements UserDetails {
         if (hash != null) {
             hash = hash.replace("\\", "").trim();
         }
-        System.out.println("🔑 Password hash (limpo): " + hash);
+        logger.debug("Password hash retrieved");
         return hash;
     }
 

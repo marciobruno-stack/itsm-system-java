@@ -3,6 +3,8 @@ package com.itsm.incidentmanagement.controller;
 import com.itsm.incidentmanagement.model.entity.*;
 import com.itsm.incidentmanagement.service.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -15,6 +17,8 @@ import java.util.List;
 
 @Controller
 public class DashboardController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
 
     private final TicketService ticketService;
     private final TecnicoService tecnicoService;
@@ -95,7 +99,7 @@ public class DashboardController {
 
     @GetMapping("/tecnico/tickets")
     public String tecnicoTickets(Model model) {
-        System.out.println("📊 A carregar /tecnico/tickets");
+        logger.debug("A carregar /tecnico/tickets");
 
         String username = getAuthenticatedUsername();
         if (username == null) return "redirect:/login";
@@ -111,11 +115,11 @@ public class DashboardController {
             List<Ticket> tickets = ticketService.findByTecnicoId(tecnico.getId());
             model.addAttribute("tickets", tickets);
             model.addAttribute("totalTickets", tickets.size());
-            System.out.println("✅ Tickets encontrados: " + tickets.size());
+            logger.debug("Tickets encontrados: {}", tickets.size());
         } else {
             model.addAttribute("tickets", new ArrayList<>());
             model.addAttribute("totalTickets", 0);
-            System.out.println("⚠️ Técnico não encontrado para: " + username);
+            logger.debug("Técnico não encontrado para: {}", username);
         }
 
         return "tecnico/tickets";
@@ -128,11 +132,11 @@ public class DashboardController {
                                     @RequestParam String estado,
                                     RedirectAttributes redirect) {
         try {
-            System.out.println("📝 Atualizando ticket " + ticketId + " para estado: " + estado);
+            logger.debug("Atualizando ticket {} para estado: {}", ticketId, estado);
             ticketService.updateEstado(ticketId, estado);
             redirect.addFlashAttribute("success", "Estado atualizado com sucesso!");
         } catch (Exception e) {
-            System.err.println("❌ Erro ao atualizar: " + e.getMessage());
+            logger.error("Erro ao atualizar ticket: {}", e.getMessage());
             redirect.addFlashAttribute("error", "Erro: " + e.getMessage());
         }
         return "redirect:/tecnico/dashboard";
@@ -174,7 +178,7 @@ public class DashboardController {
         String username = getAuthenticatedUsername();
         if (username == null) return "redirect:/login";
 
-        System.out.println("📝 A carregar formulário de novo ticket para: " + username);
+        logger.debug("A carregar formulário de novo ticket para: {}", username);
 
         model.addAttribute("username", username);
         model.addAttribute("ticket", new Ticket());
@@ -194,7 +198,7 @@ public class DashboardController {
             String username = getAuthenticatedUsername();
             if (username == null) return "redirect:/login";
 
-            System.out.println("📝 A criar ticket por utilizador: " + username);
+            logger.debug("A criar ticket por utilizador: {}", username);
 
             Utilizador user = utilizadorService.findByUsername(username);
             if (user == null) {
@@ -223,13 +227,12 @@ public class DashboardController {
             // Criar o ticket (com atribuição automática)
             Ticket created = ticketService.createTicket(ticket);
 
-            System.out.println("✅ Ticket #" + created.getId() + " criado com sucesso!");
+            logger.debug("Ticket #{} criado com sucesso", created.getId());
             redirect.addFlashAttribute("success", "Ticket #" + created.getId() + " criado com sucesso!");
             return "redirect:/utilizador/tickets";
 
         } catch (Exception e) {
-            System.err.println("❌ Erro ao criar ticket: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Erro ao criar ticket: {}", e.getMessage(), e);
             redirect.addFlashAttribute("error", "Erro ao criar ticket: " + e.getMessage());
             return "redirect:/utilizador/new-ticket";
         }
@@ -242,7 +245,7 @@ public class DashboardController {
         String username = getAuthenticatedUsername();
         if (username == null) return "redirect:/login";
 
-        System.out.println("📊 A carregar tickets do utilizador: " + username);
+        logger.debug("A carregar tickets do utilizador: {}", username);
 
         Utilizador user = utilizadorService.findByUsername(username);
         if (user == null) return "redirect:/login";
@@ -264,7 +267,7 @@ public class DashboardController {
         model.addAttribute("ticketsAbertos", abertos);
         model.addAttribute("ticketsEmAndamento", emAndamento);
 
-        System.out.println("✅ Total de tickets: " + meusTickets.size());
+        logger.debug("Total de tickets: {}", meusTickets.size());
         return "utilizador/tickets";
     }
 

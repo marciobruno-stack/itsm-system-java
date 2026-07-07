@@ -1,7 +1,9 @@
 package com.itsm.incidentmanagement.controller;
 
 import com.itsm.incidentmanagement.model.entity.Competencia;
-import com.itsm.incidentmanagement.repository.CompetenciaRepository;
+import com.itsm.incidentmanagement.service.CompetenciaService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -11,16 +13,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/admin/competencias")
 public class CompetenciaWebController {
 
-    private final CompetenciaRepository competenciaRepository;
+    private static final Logger logger = LoggerFactory.getLogger(CompetenciaWebController.class);
 
-    public CompetenciaWebController(CompetenciaRepository competenciaRepository) {
-        this.competenciaRepository = competenciaRepository;
-        System.out.println("✅ CompetenciaWebController INICIALIZADO!");
+    private final CompetenciaService competenciaService;
+
+    public CompetenciaWebController(CompetenciaService competenciaService) {
+        this.competenciaService = competenciaService;
+        logger.info("CompetenciaWebController inicializado");
     }
 
     @GetMapping
     public String listar(Model model) {
-        model.addAttribute("competencias", competenciaRepository.findAll());
+        model.addAttribute("competencias", competenciaService.findAll());
         return "admin/competencias";
     }
 
@@ -33,7 +37,7 @@ public class CompetenciaWebController {
     @PostMapping
     public String salvar(@ModelAttribute Competencia competencia, RedirectAttributes redirect) {
         try {
-            competenciaRepository.save(competencia);
+            competenciaService.create(competencia);
             redirect.addFlashAttribute("success", "Competência criada com sucesso!");
         } catch (Exception e) {
             redirect.addFlashAttribute("error", "Erro: " + e.getMessage());
@@ -44,7 +48,7 @@ public class CompetenciaWebController {
     @GetMapping("/delete/{id}")
     public String deletar(@PathVariable Long id, RedirectAttributes redirect) {
         try {
-            competenciaRepository.deleteById(id);
+            competenciaService.delete(id);
             redirect.addFlashAttribute("success", "Competência removida!");
         } catch (Exception e) {
             redirect.addFlashAttribute("error", "Erro: " + e.getMessage());

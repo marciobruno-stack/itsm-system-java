@@ -3,6 +3,10 @@ package com.itsm.incidentmanagement.controller;
 import com.itsm.incidentmanagement.model.entity.Tecnico;
 import com.itsm.incidentmanagement.model.entity.Ticket;
 import com.itsm.incidentmanagement.model.entity.Utilizador;
+import com.itsm.incidentmanagement.security.config.SecurityConfig;
+import com.itsm.incidentmanagement.security.filter.JwtAuthenticationFilter;
+import com.itsm.incidentmanagement.security.service.CustomUserDetailsService;
+import com.itsm.incidentmanagement.security.service.JwtService;
 import com.itsm.incidentmanagement.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -21,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(DashboardController.class)
+@Import({SecurityConfig.class, JwtAuthenticationFilter.class})
 @DisplayName("Testes do Dashboard Controller")
 public class DashboardControllerTest {
 
@@ -30,7 +37,12 @@ public class DashboardControllerTest {
     @MockBean private TicketService ticketService;
     @MockBean private TecnicoService tecnicoService;
     @MockBean private UtilizadorService utilizadorService;
-    @MockBean private AtivoService ativoService;  // ✅ ADICIONADO
+    @MockBean private AtivoService ativoService;
+
+    // MockBeans para segurança/JWT necessários para carregar o contexto de segurança
+    @MockBean private JwtService jwtService;
+    @MockBean private PasswordEncoder passwordEncoder;
+    @MockBean private CustomUserDetailsService customUserDetailsService;
 
     private Ticket ticket;
     private Tecnico tecnico;
@@ -40,7 +52,7 @@ public class DashboardControllerTest {
     void setUp() {
         utilizador = new Utilizador();
         utilizador.setId(1L);
-        utilizador.setNome("João Silva");
+        utilizador.setNome("Joao Silva");
         utilizador.setUsername("joao.silva");
         utilizador.setRole("ADMIN");
 
@@ -69,7 +81,7 @@ public class DashboardControllerTest {
         mockMvc.perform(get("/admin/dashboard"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/dashboard"))
-                .andExpect(model().attributeExists("tickets", "tecnicos", "utilizadores"));
+                .andExpect(model().attributeExists("totalTickets", "ticketsAbertos", "totalTecnicos", "totalUsers"));
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.itsm.incidentmanagement.console;
 import com.itsm.incidentmanagement.model.entity.*;
 import com.itsm.incidentmanagement.service.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
+@Profile("console")
 public class ConsoleApplication implements CommandLineRunner {
 
     private final TicketService ticketService;

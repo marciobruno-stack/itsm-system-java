@@ -3,6 +3,8 @@ package com.itsm.incidentmanagement.controller;
 import com.itsm.incidentmanagement.model.entity.Tecnico;
 import com.itsm.incidentmanagement.model.entity.Ticket;
 import com.itsm.incidentmanagement.model.entity.Utilizador;
+import com.itsm.incidentmanagement.security.config.SecurityConfig;
+import com.itsm.incidentmanagement.security.filter.JwtAuthenticationFilter;
 import com.itsm.incidentmanagement.security.service.CustomUserDetailsService;
 import com.itsm.incidentmanagement.security.service.JwtService;
 import com.itsm.incidentmanagement.service.*;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,6 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(WebController.class)
+@Import({SecurityConfig.class, JwtAuthenticationFilter.class})
 @DisplayName("Testes do Web Controller")
 public class WebControllerTest {
 
@@ -49,7 +53,7 @@ public class WebControllerTest {
     void setUp() {
         utilizador = new Utilizador();
         utilizador.setId(1L);
-        utilizador.setNome("João Silva");
+        utilizador.setNome("Joao Silva");
         utilizador.setUsername("joao.silva");
         utilizador.setRole("ADMIN");
 
